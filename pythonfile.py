@@ -27,6 +27,8 @@ worldgdf = gpd.read_file(datapath)
 
 newseries = gpd.GeoSeries(Point(coordinatelist[0]))
 
+#seriesofnumbers = pd.Series(list(range(len())))
+
 for anycoordinates in coordinatelist[1:]:
     newseries = newseries.append(gpd.GeoSeries(Point(anycoordinates)), ignore_index = True)
 
@@ -50,9 +52,26 @@ for anycoordinates in coordinatelist[1:]:
 
 #worlddata.boundary.plot()
 
-pointsgdf = gpd.GeoDataFrame(geometry = newseries)
+print(list(newseries))
 
-worldgdf = worlddata.plot(color='white', edgecolor='black')
-pointsgdf.plot(ax=worldplot, scheme = 'quantiles')
+secondseries = pd.Series([random.randint(1,100)])
+
+for anyitem in list(newseries)[1:]:
+    secondseries = secondseries.append(pd.Series([random.randint(1,100)]), ignore_index = True)
+
+secondseries = secondseries.rename('secondseries')
+
+print(list(secondseries))
+
+
+pointsgdf = gpd.GeoDataFrame(secondseries, geometry = newseries)
+print(pointsgdf)
+#pointsgdf['newcolumn'] = []
+#pointsgdf.assign(newcolumn = random.randint(1,100))
+#for anyentry in pointsgdf['geometry']:
+#    pointsgdf['newcolumn'] += [random.randint(1,100)]
+
+worldplot = worldgdf.plot(color='white', edgecolor='black')
+pointsgdf.plot(ax=worldplot, scheme = 'quantiles', column = 'secondseries') # column = 'newcolumn'
 
 plt.show()
