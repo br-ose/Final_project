@@ -54,10 +54,13 @@ for anycoordinates in coordinatelist[1:]:
 
 print(list(newseries))
 
-secondseries = pd.Series([random.randint(1,100)])
+iterator = 100
+secondseries = pd.Series([iterator])
+iterator = 1
 
 for anyitem in list(newseries)[1:]:
-    secondseries = secondseries.append(pd.Series([random.randint(1,100)]), ignore_index = True)
+    iterator += 1
+    secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True)
 
 secondseries = secondseries.rename('secondseries')
 
@@ -71,7 +74,11 @@ print(pointsgdf)
 #for anyentry in pointsgdf['geometry']:
 #    pointsgdf['newcolumn'] += [random.randint(1,100)]
 
-worldplot = worldgdf.plot(color='white', edgecolor='black')
-pointsgdf.plot(ax=worldplot, scheme = 'quantiles', column = 'secondseries') # column = 'newcolumn'
-
+worldplot = worldgdf.plot(color='grey', edgecolor='black')
+#worldplot.set_axis_bgcolor("#OFOFOF")
+pointsgdf.plot(ax=worldplot, cmap = 'viridis', column = 'secondseries', legend = True) # column = 'newcolumn' scheme = 'quantiles'
+#plt.legend(loc='best')
+plt.title('Some cool climate change data (mol/m^3)')
+plt.xlabel('Longitude')
+plt.ylabel('Latitude')
 plt.show()
