@@ -66,8 +66,7 @@ class funWithTheEarth:
                 self.secondPart(cityname)
             self.drawncount += 25
             print("Attempted to add the following cities to the database: {}".format(str(return_list)))
-
-        self.global_conn.close()    
+  
         return return_list
     
     def inputSomeStuff(self):
@@ -201,9 +200,9 @@ class funWithTheEarth:
 
 newInstance = funWithTheEarth()
 
-#newInstance.inputSomeStuff()
 #print(newInstance)
 newInstance.draw25(4)
+newInstance.inputSomeStuff()
 newInstance.showMeTheMoney()
 #for anyentry in newInstance.draw25():
     #print(str(anyentry) + '\n\n')
