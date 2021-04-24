@@ -67,13 +67,14 @@ while userinputbool:
         db_coord_list = global_cur.fetchall()
 
         coordfoundbool = False
+        coordMOE = 0.5
 
         for anycoord in db_coord_list:
         #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
-            if (anycoord[0] <= userinput_coordinates[0] + 0.5 
-            and anycoord[0] >= userinput_coordinates[0] - 0.5 
-            and anycoord[1] <= userinput_coordinates[1] + 0.5
-            and anycoord[1] >= userinput_coordinates[1] - 0.5):
+            if (anycoord[0] <= userinput_coordinates[0] + coordMOE 
+            and anycoord[0] >= userinput_coordinates[0] - coordMOE 
+            and anycoord[1] <= userinput_coordinates[1] + coordMOE
+            and anycoord[1] >= userinput_coordinates[1] - coordMOE):
             #if userinput_coordinates in db_coord_list:
             # if the coordinates aren't already in the database:
                 coordinatelist += [userinput_coordinates]
