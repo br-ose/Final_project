@@ -41,7 +41,7 @@ class funWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
             print("Database already created!")
-## API PART
+## API PART HERE
 
 def getemissions(self,country,start,end):
     # Get average carbon monoxide emissions across a given country for the past 1 year period 
