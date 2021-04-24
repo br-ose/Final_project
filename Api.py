@@ -8,7 +8,6 @@ def getcountrycode(country,file):
          csv_reader = csv.reader(file2, delimiter=',')
          for row in csv_reader:
              if row[0] == country:
-                 print(row[2])
                  return row[2]
 
 def getemissions(country,start,end):
@@ -47,6 +46,6 @@ getcountrycode("United States","countries_codes_and_coordinates.csv")
 ##Test get emissions
 #getemissions("USA","2020-01-01","2020-12-31")
 #Test get temp
-#gettemp("USA")
+gettemp("USA")
 
 

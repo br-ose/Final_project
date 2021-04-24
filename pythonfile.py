@@ -41,6 +41,39 @@ class funWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
             print("Database already created!")
+## API PART
+
+def getemissions(self,country,start,end):
+    # Get average carbon monoxide emissions across a given country for the past 1 year period 
+    url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
+    results =  requests.get(url)
+    results = results.json()
+    print(results)
+    return results
+    
+def gettemp(self,country):
+    #temp is in celcius
+    # Gets the past
+    url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+    results =  requests.get(url)
+    results = results.json()
+    print(results)
+
+def setup(self):
+    pass
+    #Sets up database
+
+def addtemp(self,tempdata):
+    ## adds the temp data to the database in chunks
+    #Shared key is country
+    pass
+def addemissions(self,emdata):
+    # adds emissions data in chunks
+    #Shared key is country
+    pass
+def calculateavg(self):
+    # gets the average emissions of a country and compares 
+    pass
 
     ### END SQLITE3 TIME ###
     # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
