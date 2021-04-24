@@ -8,154 +8,171 @@ from shapely.geometry import Point
 import sqlite3
 import os.path
 
-coordinatelist = []
-userinputbool = True
+class funWithTheEarth:
 
-### SQLITE3 TIME ###
+    def __init__(self):
 
-global_db_name = 'testdb2'
+        self.coordinatelist = []
+        self.userinputbool = True
 
-def setUpDatabase(db_name):
-        path = os.path.dirname(os.path.abspath(__file__))
-        conn = sqlite3.connect(path+'/'+db_name)
-        cur = conn.cursor()
-        return cur, conn
+        ### SQLITE3 TIME ###
 
-if not os.path.exists(os.path.dirname(os.path.abspath(__file__))+'/'+global_db_name):
+        self.global_db_name = 'testdb2'
 
-    global_cur, global_conn = setUpDatabase(global_db_name)
+        def setUpDatabase(db_name):
+                path = os.path.dirname(os.path.abspath(__file__))
+                conn = sqlite3.connect(path+'/'+db_name)
+                cur = conn.cursor()
+                return cur, conn
 
-    global_cur.execute("DROP TABLE IF EXISTS Main_Table")
-    global_cur.execute("CREATE TABLE Main_Table (id INTEGER PRIMARY KEY AUTOINCREMENT, point_name TEXT, longitude REAL, latitude REAL)")
+        if not os.path.exists(os.path.dirname(os.path.abspath(__file__))+'/'+self.global_db_name):
 
-    print("Database created!")
+            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
-else:
+            self.global_cur.execute("DROP TABLE IF EXISTS Main_Table")
+            self.global_cur.execute("CREATE TABLE Main_Table (id INTEGER PRIMARY KEY AUTOINCREMENT, point_name TEXT, longitude REAL, latitude REAL)")
 
-    global_cur, global_conn = setUpDatabase(global_db_name)
+            print("Database created!")
 
-    print("Database already created!")
+        else:
 
-### END SQLITE3 TIME ###
-# SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
+            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
-while userinputbool:
+            print("Database already created!")
 
-    userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
+    ### END SQLITE3 TIME ###
+    # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
 
-    if userinput.lower() == 'exit':
+    def __str__(self):
 
-        userinputbool = False
-        break
+        return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+    
+    def inputSomeStuff(self):
 
-    global_cur.execute("SELECT point_name FROM Main_Table")
-    name_list = [anyentry[0] for anyentry in global_cur.fetchall()]
+        while self.userinputbool:
 
-    if userinput in name_list:
+            userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
 
-        global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
-        userinput_coordinates = global_cur.fetchone()
-        coordinatelist += [userinput_coordinates]
-        print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]")
+            if userinput.lower() == 'exit':
 
-    else:
+                self.userinputbool = False
+                break
 
-        requestvar = requests.get("https://open.mapquestapi.com/geocoding/v1/address?key=XGcPnAqF2wxYdwEXRCbUd8vj6G3eAIdg&location={}".format(userinput).replace(" ", "+"))
-        datavar = json.loads(requestvar.text)
-        userinput_coordinates = (float(datavar['results'][0]['locations'][0]['latLng']['lng']), float(datavar['results'][0]['locations'][0]['latLng']['lat']))
-        global_cur.execute("SELECT longitude, latitude FROM Main_Table")
-        db_coord_list = global_cur.fetchall()
+            self.global_cur.execute("SELECT point_name FROM Main_Table")
+            name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()]
 
-        coordfoundbool = False
-        coordMOE = 0.5
+            if userinput in name_list:
 
-        for anycoord in db_coord_list:
-        #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
-            if (anycoord[0] <= userinput_coordinates[0] + coordMOE 
-            and anycoord[0] >= userinput_coordinates[0] - coordMOE 
-            and anycoord[1] <= userinput_coordinates[1] + coordMOE
-            and anycoord[1] >= userinput_coordinates[1] - coordMOE):
-            #if userinput_coordinates in db_coord_list:
-            # if the coordinates aren't already in the database:
-                coordinatelist += [userinput_coordinates]
-                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
-                coordfoundbool = True
-                
-        if not coordfoundbool:
+                self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
+                userinput_coordinates = self.global_cur.fetchone()
+                self.coordinatelist += [userinput_coordinates]
+                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]")
 
-            global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
-            coordinatelist += [userinput_coordinates]
-            global_conn.commit()
-            print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]")
-            
-global_conn.close()
+            else:
 
-### OKAY THIS IS THE REAL END OF SQLITE3 TIME ###
+                requestvar = requests.get("https://open.mapquestapi.com/geocoding/v1/address?key=XGcPnAqF2wxYdwEXRCbUd8vj6G3eAIdg&location={}".format(userinput).replace(" ", "+"))
+                datavar = json.loads(requestvar.text)
+                userinput_coordinates = (float(datavar['results'][0]['locations'][0]['latLng']['lng']), float(datavar['results'][0]['locations'][0]['latLng']['lat']))
+                self.global_cur.execute("SELECT longitude, latitude FROM Main_Table")
+                db_coord_list = self.global_cur.fetchall()
 
-datapath = gpd.datasets.get_path('naturalearth_lowres')
-worldgdf = gpd.read_file(datapath)
+                coordfoundbool = False
+                coordMOE = 0.5
 
-#worlddata = worlddata[(worlddata.pop_est > 0) & (worlddata.name != "Antarctica")]
+                for anycoord in db_coord_list:
+                #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
+                    if (anycoord[0] <= userinput_coordinates[0] + coordMOE 
+                    and anycoord[0] >= userinput_coordinates[0] - coordMOE 
+                    and anycoord[1] <= userinput_coordinates[1] + coordMOE
+                    and anycoord[1] >= userinput_coordinates[1] - coordMOE):
+                    #if userinput_coordinates in db_coord_list:
+                    # if the coordinates aren't already in the database:
+                        self.coordinatelist += [userinput_coordinates]
+                        print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
+                        coordfoundbool = True
+                        
+                if not coordfoundbool:
 
-newseries = gpd.GeoSeries(Point(coordinatelist[0]))
+                    self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
+                    self.coordinatelist += [userinput_coordinates]
+                    self.global_conn.commit()
+                    print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]")
+                    
+        self.global_conn.close()
 
-#seriesofnumbers = pd.Series(list(range(len())))
+    ### OKAY THIS IS THE REAL END OF SQLITE3 TIME ###
 
-for anycoordinates in coordinatelist[1:]:
-    newseries = newseries.append(gpd.GeoSeries(Point(anycoordinates)), ignore_index = True)
+    def showMeTheMoney(self):
 
-#joinedgdf = gpd.GeoDataFrame(geometry = worlddata.geometry.append(newseries, ignore_index = True))
+        datapath = gpd.datasets.get_path('naturalearth_lowres')
+        worldgdf = gpd.read_file(datapath)
 
-#print(joinedgdf)
+        #worlddata = worlddata[(worlddata.pop_est > 0) & (worlddata.name != "Antarctica")]
 
-#worlddata['random_data'] = list(range(176)) # this is how we can add data to the GeoDataFrame
+        newseries = gpd.GeoSeries(Point(self.coordinatelist[0]))
 
-#country_index_dict = {worlddata.name[number]: worlddata.index[number] for number in range(176) if number != 159} # me creating a dictionary with country names and corresponding index numbers, which are seemingly random
-#print(country_index_dict)
+        #seriesofnumbers = pd.Series(list(range(len())))
 
-#print(worlddata.index["Afghanistan"])
+        for anycoordinates in self.coordinatelist[1:]:
+            newseries = newseries.append(gpd.GeoSeries(Point(anycoordinates)), ignore_index = True)
 
-#joinedgdf.plot(cmap = 'Dark2')
-#pointdata = gpd.GeoDataFrame(geometry = newseries)
-#pointdata.plot(cmap = 'gist_rainbow')
+        #joinedgdf = gpd.GeoDataFrame(geometry = worlddata.geometry.append(newseries, ignore_index = True))
 
-#tennisdict = {'Novak Djokovic': 2, 'Naomi Osaka': 2, 'Rafael Nadal': 1, 'Iga Świątek': 1, 'Simona Halep': 1, 'Dominic Thiem': 1}
-#plt.bar(list(tennisdict.keys()),list(tennisdict.values()))
+        #print(joinedgdf)
 
-#worlddata.boundary.plot()
+        #worlddata['random_data'] = list(range(176)) # this is how we can add data to the GeoDataFrame
 
-print(list(newseries))
+        #country_index_dict = {worlddata.name[number]: worlddata.index[number] for number in range(176) if number != 159} # me creating a dictionary with country names and corresponding index numbers, which are seemingly random
+        #print(country_index_dict)
 
-iterator = 1
-secondseries = pd.Series([iterator])
-#iterator = 1
+        #print(worlddata.index["Afghanistan"])
 
-for anyitem in list(newseries)[1:]:
-    iterator += 10
-    if iterator <= 101:
-        secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True)
-    else:
-        secondseries = secondseries.append(pd.Series([101]), ignore_index = True)
+        #joinedgdf.plot(cmap = 'Dark2')
+        #pointdata = gpd.GeoDataFrame(geometry = newseries)
+        #pointdata.plot(cmap = 'gist_rainbow')
 
-secondseries = secondseries.rename('secondseries')
+        #tennisdict = {'Novak Djokovic': 2, 'Naomi Osaka': 2, 'Rafael Nadal': 1, 'Iga Świątek': 1, 'Simona Halep': 1, 'Dominic Thiem': 1}
+        #plt.bar(list(tennisdict.keys()),list(tennisdict.values()))
 
-print(list(secondseries))
+        #worlddata.boundary.plot()
+
+        print(list(newseries))
+
+        iterator = 1
+        secondseries = pd.Series([iterator])
+        #iterator = 1
+
+        for anyitem in list(newseries)[1:]:
+            iterator += 10
+            if iterator <= 101:
+                secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True)
+            else:
+                secondseries = secondseries.append(pd.Series([101]), ignore_index = True)
+
+        secondseries = secondseries.rename('secondseries')
+
+        print(list(secondseries))
 
 
-pointsgdf = gpd.GeoDataFrame(secondseries, geometry = newseries)
-print(pointsgdf)
-#pointsgdf['newcolumn'] = []
-#pointsgdf.assign(newcolumn = random.randint(1,100))
-#for anyentry in pointsgdf['geometry']:
-#    pointsgdf['newcolumn'] += [random.randint(1,100)]
+        pointsgdf = gpd.GeoDataFrame(secondseries, geometry = newseries)
+        print(pointsgdf)
+        #pointsgdf['newcolumn'] = []
+        #pointsgdf.assign(newcolumn = random.randint(1,100))
+        #for anyentry in pointsgdf['geometry']:
+        #    pointsgdf['newcolumn'] += [random.randint(1,100)]
 
-worldplot = worldgdf.plot(color='grey', edgecolor='black')
-#worldplot.set_axis_bgcolor("#OFOFOF")
-pointsgdf.plot(ax=worldplot, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # column = 'newcolumn' scheme = 'quantiles'
-#plt.legend(loc='best')
-plt.title('Some cool climate change data (mol/m^3)')
-plt.xlabel('Longitude')
-plt.ylabel('Latitude')
-plt.show()
+        worldplot = worldgdf.plot(color='grey', edgecolor='black')
+        #worldplot.set_axis_bgcolor("#OFOFOF")
+        pointsgdf.plot(ax=worldplot, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # column = 'newcolumn' scheme = 'quantiles'
+        #plt.legend(loc='best')
+        plt.title('Some cool climate change data (mol/m^3)')
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
+        plt.show()
 
-# HOW TO CHANGE POINT SIZE DYNAMICALLY https://gis.stackexchange.com/questions/241612/change-marker-size-in-plot-with-geopandas
+        # HOW TO CHANGE POINT SIZE DYNAMICALLY https://gis.stackexchange.com/questions/241612/change-marker-size-in-plot-with-geopandas
+
+newInstance = funWithTheEarth()
+
+newInstance.inputSomeStuff()
+newInstance.showMeTheMoney()
