@@ -7,6 +7,7 @@ import pandas as pd
 from shapely.geometry import Point
 import sqlite3
 import os.path
+from bs4 import BeautifulSoup
 
 class funWithTheEarth:
 
@@ -14,6 +15,7 @@ class funWithTheEarth:
 
         self.coordinatelist = []
         self.userinputbool = True
+        self.drawncount = 0
 
         ### SQLITE3 TIME ###
 
@@ -21,11 +23,11 @@ class funWithTheEarth:
 
         def setUpDatabase(db_name):
                 path = os.path.dirname(os.path.abspath(__file__))
-                conn = sqlite3.connect(path+'/'+db_name)
+                conn = sqlite3.connect(path + '/' + db_name)
                 cur = conn.cursor()
                 return cur, conn
 
-        if not os.path.exists(os.path.dirname(os.path.abspath(__file__))+'/'+self.global_db_name):
+        if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + self.global_db_name):
 
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
@@ -47,6 +49,27 @@ class funWithTheEarth:
 
         return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
     
+    def draw25(self, sets_of_25 = 1):
+
+        for num in range(sets_of_25):
+
+            responsevar = requests.get("https://worldpopulationreview.com/world-cities")
+            datavar = responsevar.text
+            citysoup = BeautifulSoup(datavar, "html.parser")
+            citytable = citysoup.find('tbody', class_ = "jsx-2642336383")
+            cityentries = citytable.find_all('tr')
+            return_list = []
+            for anyrow in cityentries[self.drawncount:self.drawncount + 25]:
+                cells = anyrow.find_all('td')
+                cityname = cells[1].text + ", " + cells[2].text
+                return_list += [cityname]
+                self.secondPart(cityname)
+            self.drawncount += 25
+            print("Attempted to add the following cities to the database: {}".format(str(return_list)))
+
+        self.global_conn.close()    
+        return return_list
+    
     def inputSomeStuff(self):
 
         while self.userinputbool:
@@ -58,51 +81,55 @@ class funWithTheEarth:
                 self.userinputbool = False
                 break
 
-            self.global_cur.execute("SELECT point_name FROM Main_Table")
-            name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()]
+            self.secondPart(userinput)
 
-            if userinput in name_list:
+    def secondPart(self, userinput):
 
-                self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
-                userinput_coordinates = self.global_cur.fetchone()
-                self.coordinatelist += [userinput_coordinates]
-                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]")
+        self.global_cur.execute("SELECT point_name FROM Main_Table")
+        name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()]
 
-            else:
+        if userinput in name_list:
 
-                requestvar = requests.get("https://open.mapquestapi.com/geocoding/v1/address?key=XGcPnAqF2wxYdwEXRCbUd8vj6G3eAIdg&location={}".format(userinput).replace(" ", "+"))
-                datavar = json.loads(requestvar.text)
-                userinput_coordinates = (float(datavar['results'][0]['locations'][0]['latLng']['lng']), float(datavar['results'][0]['locations'][0]['latLng']['lat']))
-                self.global_cur.execute("SELECT longitude, latitude FROM Main_Table")
-                db_coord_list = self.global_cur.fetchall()
+            self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
+            userinput_coordinates = self.global_cur.fetchone()
+            self.coordinatelist += [userinput_coordinates]
+            print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]")
 
-                coordfoundbool = False
-                coordMOE = 0.5
+        else:
 
-                for anycoord in db_coord_list:
-                #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
-                    if (anycoord[0] <= userinput_coordinates[0] + coordMOE 
-                    and anycoord[0] >= userinput_coordinates[0] - coordMOE 
-                    and anycoord[1] <= userinput_coordinates[1] + coordMOE
-                    and anycoord[1] >= userinput_coordinates[1] - coordMOE):
-                    #if userinput_coordinates in db_coord_list:
-                    # if the coordinates aren't already in the database:
-                        self.coordinatelist += [userinput_coordinates]
-                        print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
-                        coordfoundbool = True
-                        
-                if not coordfoundbool:
+            requestvar = requests.get("https://open.mapquestapi.com/geocoding/v1/address?key=XGcPnAqF2wxYdwEXRCbUd8vj6G3eAIdg&location={}".format(userinput).replace(" ", "+"))
+            datavar = json.loads(requestvar.text)
+            userinput_coordinates = (float(datavar['results'][0]['locations'][0]['latLng']['lng']), float(datavar['results'][0]['locations'][0]['latLng']['lat']))
+            self.global_cur.execute("SELECT longitude, latitude FROM Main_Table")
+            db_coord_list = self.global_cur.fetchall()
 
-                    self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
+            coordfoundbool = False
+            coordMOE = 0.5
+
+            for anycoord in db_coord_list:
+            #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
+                if (anycoord[0] <= userinput_coordinates[0] + coordMOE 
+                and anycoord[0] >= userinput_coordinates[0] - coordMOE 
+                and anycoord[1] <= userinput_coordinates[1] + coordMOE
+                and anycoord[1] >= userinput_coordinates[1] - coordMOE):
+                #if userinput_coordinates in db_coord_list:
+                # if the coordinates aren't already in the database:
                     self.coordinatelist += [userinput_coordinates]
-                    self.global_conn.commit()
-                    print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]")
+                    print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
+                    coordfoundbool = True
                     
-        self.global_conn.close()
+            if not coordfoundbool:
+
+                self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
+                self.coordinatelist += [userinput_coordinates]
+                self.global_conn.commit()
+                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]")
 
     ### OKAY THIS IS THE REAL END OF SQLITE3 TIME ###
 
     def showMeTheMoney(self):
+
+        self.global_conn.close()
 
         datapath = gpd.datasets.get_path('naturalearth_lowres')
         worldgdf = gpd.read_file(datapath)
@@ -143,7 +170,7 @@ class funWithTheEarth:
         #iterator = 1
 
         for anyitem in list(newseries)[1:]:
-            iterator += 10
+            iterator += 1
             if iterator <= 101:
                 secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True)
             else:
@@ -174,5 +201,9 @@ class funWithTheEarth:
 
 newInstance = funWithTheEarth()
 
-newInstance.inputSomeStuff()
+#newInstance.inputSomeStuff()
+#print(newInstance)
+newInstance.draw25(4)
 newInstance.showMeTheMoney()
+#for anyentry in newInstance.draw25():
+    #print(str(anyentry) + '\n\n')
