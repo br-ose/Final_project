@@ -64,14 +64,23 @@ while userinputbool:
         datavar = json.loads(requestvar.text)
         userinput_coordinates = (float(datavar['results'][0]['locations'][0]['latLng']['lng']), float(datavar['results'][0]['locations'][0]['latLng']['lat']))
         global_cur.execute("SELECT longitude, latitude FROM Main_Table")
-        coord_list = global_cur.fetchall()
+        db_coord_list = global_cur.fetchall()
 
-        if userinput_coordinates in coord_list:
-        # if the coordinates aren't already in the database:
-            coordinatelist += [userinput_coordinates]
-            print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
-            
-        else:
+        coordfoundbool = False
+
+        for anycoord in db_coord_list:
+        #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
+            if (anycoord[0] <= userinput_coordinates[0] + 0.5 
+            and anycoord[0] >= userinput_coordinates[0] - 0.5 
+            and anycoord[1] <= userinput_coordinates[1] + 0.5
+            and anycoord[1] >= userinput_coordinates[1] - 0.5):
+            #if userinput_coordinates in db_coord_list:
+            # if the coordinates aren't already in the database:
+                coordinatelist += [userinput_coordinates]
+                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
+                coordfoundbool = True
+                
+        if not coordfoundbool:
 
             global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
             coordinatelist += [userinput_coordinates]
