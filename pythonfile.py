@@ -11,37 +11,37 @@ from bs4 import BeautifulSoup
 
 class funWithTheEarth:
 
-    def __init__(self):
+    def __init__(self): # iniates some key variables
 
-        self.coordinatelist = []
-        self.userinputbool = True
-        self.drawncount = 0
-        self.coordMOE = 0.5
+        self.coordinatelist = [] # list where all the coordinates for this session are stored
+        self.userinputbool = True # variable for the while loop, guess we don't really need this
+        self.drawncount = 0 # variable for my old draw25 function
+        self.coordMOE = 0.5 # Margin of Error accepted for what is/isn't a different place; right now, anything within 0.5 geographic coordinate degrees of an existing SQL entry is considered the "same place" as the oldest existing entry in that range
 
         ### SQLITE3 TIME ###
 
-        self.global_db_name = 'testdb2'
+        self.global_db_name = 'testdb2' # database file name
 
-        def setUpDatabase(db_name):
+        def setUpDatabase(db_name): # function that creates/connects us to the SQL database
                 path = os.path.dirname(os.path.abspath(__file__))
                 conn = sqlite3.connect(path + '/' + db_name)
                 cur = conn.cursor()
                 return cur, conn
 
-        if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + self.global_db_name):
+        if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + self.global_db_name): # if the database doesn't exist yet,
 
-            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
+            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name) # make it! (apparently simply calling the setUpDatabase function creates it?)
 
-            self.global_cur.execute("DROP TABLE IF EXISTS Main_Table")
+            self.global_cur.execute("DROP TABLE IF EXISTS Main_Table") # just to be safe, format the database of any existing Main_Table
             self.global_cur.execute("CREATE TABLE Main_Table (id INTEGER PRIMARY KEY AUTOINCREMENT, point_name TEXT, longitude REAL, latitude REAL)")
 
-            print("\nDatabase created!\n")
+            print("\nDatabase created!\n") # statement for user to see a new database was created
 
-        else:
+        else: # if the databse already exists,
 
-            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
+            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name) # just connect to it!
 
-            print("\nDatabase already created, using existing database!\n")
+            print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
     ## API PART
 
@@ -83,59 +83,57 @@ class funWithTheEarth:
         ### END SQLITE3 TIME ###
         # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
 
-    def __str__(self):
+    def __str__(self): # this method added to prevent confusion if user tries to print an instance of funWithTheEarth
 
         return "\nThis is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!\n"
     
-    def draw25(self, sets_of_25 = 1):
+    def draw25(self, sets_of_25 = 1): # allows user to easily draw any number of groups of 25 cities from a list of world's biggest cities
 
-        for num in range(sets_of_25):
+        for num in range(sets_of_25): # for every set of 25 the user requests,
 
-            responsevar = requests.get("https://worldpopulationreview.com/world-cities")
-            datavar = responsevar.text
-            citysoup = BeautifulSoup(datavar, "html.parser")
-            citytable = citysoup.find('tbody', class_ = "jsx-2642336383")
-            cityentries = citytable.find_all('tr')
-            return_list = []
-            for anyrow in cityentries[self.drawncount:self.drawncount + 25]:
-                cells = anyrow.find_all('td')
-                cityname = cells[1].text + ", " + cells[2].text
-                return_list += [cityname]
-                self.secondPart(cityname)
-            self.drawncount += 25
-            print("\nAttempted to add the following cities to the database: {}\n".format(str(return_list)))
-  
-        return return_list
+            responsevar = requests.get("https://worldpopulationreview.com/world-cities") # get raw internet data from big cities list
+            datavar = responsevar.text # turn that data into a big string of random HTML
+            citysoup = BeautifulSoup(datavar, "html.parser") # process datavar into a python-interpretable quasi-HTML object (a Soup)
+            citytable = citysoup.find('tbody', class_ = "jsx-2642336383") # finds the table we need
+            cityentries = citytable.find_all('tr') # finds all the lines in that table
+            return_list = [] # list to hold all the city names from each set of draw25 
+            for anyrow in cityentries[self.drawncount:self.drawncount + 25]: # for any row in the table,
+                cells = anyrow.find_all('td') # get all the cells
+                cityname = cells[1].text + ", " + cells[2].text # set cityname to "city, country"
+                return_list += [cityname] # add cityname to the list of city names
+                self.secondPart(cityname) # run each cityname through our main datastoring function to either store or retrieve it in/from SQL database
+            self.drawncount += 25 # acknowledge to this instance of funWithTheEarth that we've drawn another set of 25
+            print("\nAttempted to add the following cities to the database: {}\n".format(str(return_list))) # statement for user to see they drew 25 and which 25 were drawn
     
-    def inputSomeStuff(self):
+    def inputSomeStuff(self): # function for users to input place names
 
-        accum = 0
+        accum = 0 # number of times user has input data
 
-        while self.userinputbool:
+        while self.userinputbool: # initiate indefinite loop
 
-            if accum <= 24:
+            if accum <= 24: # if user has entered data 24 times or less,
 
-                userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
+                userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ") # ask them to enter data
 
-                if userinput.lower() == 'exit' and len(self.coordinatelist) >= 1:
+                if userinput.lower() == 'exit' and len(self.coordinatelist) >= 1: # if they type 'exit' and there's data in self.coordinatelist,
 
-                    self.userinputbool = False
-                    break
+                    self.userinputbool = False # end the indefinite loop
+                    break 
 
-                elif userinput.lower() == 'exit' and len(self.coordinatelist) == 0:
+                elif userinput.lower() == 'exit' and len(self.coordinatelist) == 0: # if they type 'exit' and there's no data in self.coordinatelist,
 
-                    print("\nHey, you have to input at least one place to get this program to work, man!\n\nPlease, give me a place!\n")
-                    continue
+                    print("\nHey, you have to input at least one place to get this program to work, man!\n\nPlease, give me a place!\n") # ask the user to input data
+                    continue # restart the loop
 
-                self.secondPart(userinput)
-                accum += 1
+                self.secondPart(userinput) # if neither of the above scenarios occur, run the main data acquisition function on the user's input
+                accum += 1 # acknowledge that we added one datum to the templist
 
-            else:
+            else: # if the user has requested data 25 times,
 
-                print("\nNo more data can be entered this round!\n")
+                print("\nNo more data can be entered this round!\n") # tell them no
                 break
 
-    def secondPart(self, userinput):
+    def secondPart(self, userinput): # aight here's the main func of this badboi
 
         self.global_cur.execute("SELECT point_name FROM Main_Table")
         name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()]
