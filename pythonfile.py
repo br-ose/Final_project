@@ -9,13 +9,14 @@ from shapely.geometry import Point
 import sqlite3
 import os.path
 from bs4 import BeautifulSoup
+import csv
 
 # 1. Ask user for input
 # 2. convert into coordinates
 # 3. ask user for time interval
 # 4. make api call using those coordinates to get temperature and emissions data 
 # 5. create database
-# 6. store data in database 25 items at a time
+# 6. store data in database 25 items at a time 
 # 7. calculate change in average between two time periods 
 # 8. calculate r correlation coefficient
 # 9. visualize them all?
@@ -55,7 +56,6 @@ class funWithTheEarth:
 
             print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
-            print("Database already created!")
     ### END SQLITE3 TIME ###
     # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
 
@@ -65,10 +65,10 @@ class funWithTheEarth:
     
     def getemissions(self,coordinates,start,end):
     # Get average carbon monoxide emissions across a given country for the past period
-        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
+        #url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
         results =  requests.get(url)
         results = results.json()
-        self.emissionsresults = emissions
+        #self.emissionsresults = emissions
 
 ## Coordinates must be inputted as a tuple
     def getcountryfromcoords(self,coords,file):
@@ -92,17 +92,15 @@ class funWithTheEarth:
                     return country[2]
 
     def gettemp(self,coordinates):
-        self.country = getcountryfromcoords(coordinates,"countries_codes_and_coordinates.csv")
-        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(self.country.strip().strip('"'))
-        print(url)
-        results =  requests.get(url,timeout=5)
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+        results =  requests.get(url)
         results = results.json()
         self.tempresults = results
 
     def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
         #Shared key is coords
-        global_cur.execute("CREATE TABLE tempdata (PRIMARY KEY year INTEGER, xcoord FLOAT, ycoord FLOAT, tempavg FLOAT, country TEXT)")
+        pass
     def addemissions(self,emdata):
         # adds emissions data in chunks
         #Shared key is country
@@ -158,6 +156,49 @@ class funWithTheEarth:
 
                 print("\nNo more data can be entered this round!\n") # tell them no
                 break
+
+        self.startyear = 1901
+        self.endyear = 2001
+
+        workingbool = True
+        
+        while workingbool:
+
+            if not workingbool:
+
+                break
+
+            userinput2 = input("Yo, so uh...you wanna see some temp change data? Gimme a starting year between 1901 and 2012 for the range you want: ")
+
+            if userinput2.isdigit() and len(userinput2) == 4 and int(userinput2) >= 1901 and int(userinput2) <= 2012:
+
+                self.startyear = int(userinput2)
+                workingbool = False
+            
+            else:
+
+                print("\nHeyo, uhh...that's not a valid year, chief: gimme a year between 1901 and 2012.\n")
+                continue
+
+        workingbool = True
+        
+        while workingbool:
+
+            if not workingbool:
+
+                break
+
+            userinput3 = input("How about the end year? Gimme one: ")
+
+            if userinput3.isdigit() and len(userinput3) == 4 and int(userinput3) >= 1901 and int(userinput3) <= 2012 and int(userinput3) > int(userinput2):
+
+                self.endyear = int(userinput3)
+                workingbool = False
+            
+            else:
+
+                print("\nHeyo, uhh...that's not a valid year, chief: gimme a year between 1901 and 2012 AFTER your first input year.\n")
+                continue
 
     def secondPart(self, userinput): # aight here's the main func of this badboi
 
