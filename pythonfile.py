@@ -4,10 +4,22 @@ import matplotlib.pyplot as plt
 import requests
 import json
 import pandas as pd
+import math
 from shapely.geometry import Point
 import sqlite3
 import os.path
 from bs4 import BeautifulSoup
+
+# 1. Ask user for input
+# 2. convert into coordinates
+# 3. ask user for time interval
+# 4. make api call using those coordinates to get temperature and emissions data 
+# 5. create database
+# 6. store data in database 25 items at a time
+# 7. calculate change in average between two time periods 
+# 8. calculate r correlation coefficient
+# 9. visualize them all?
+
 
 class funWithTheEarth:
 
@@ -43,34 +55,51 @@ class funWithTheEarth:
 
             print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
-    ## API PART
+            print("Database already created!")
+    ### END SQLITE3 TIME ###
+    # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
 
-    # We'll need to change this to coords instead of country at some point!
-    def getemissions(self,country,start,end):
-        # Get average carbon monoxide emissions across a given country for the past 1 year period 
+    def __str__(self):
+
+        return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+    
+    def getemissions(self,coordinates,start,end):
+    # Get average carbon monoxide emissions across a given country for the past period
         url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
         results =  requests.get(url)
         results = results.json()
-        print(results)
-        return results
-    
-    # We'll need to change this to coords instead of country at some point!
-    def gettemp(self,country):
-        #temp is in celcius
-        # Gets the past
+        self.emissionsresults = emissions
+
+## Coordinates must be inputted as a tuple
+    def getcountryfromcoords(self,coords,file):
+        with open(file) as file2:
+            csv_reader = csv.reader(file2, delimiter=',')
+            coordlist = []
+            next(csv_reader)
+            shortest_distance = None
+            shortest_distance_coordinates = None
+            dalist = []
+            for row in csv_reader:
+                coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
+                dalist.append(row)
+            for coordinate in coordlist:
+                distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
+                if shortest_distance is None or distance < shortest_distance:
+                    shortest_distance = distance
+                    shortest_distance_coordinates = coordinate
+            for country in dalist:
+                if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
+                    return country[2]
+
+    def gettemp(self,coordinates):
         url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
         results =  requests.get(url)
         results = results.json()
-        print(results)
+        self.tempresults = results
 
-    # This func shouldn't be needed anymore?
-    #def setup(self):
-        #pass
-        #Sets up database
-
-    def addtemp(self,tempdata):
+    def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
-        #Shared key is country
+        #Shared key is coords
         pass
     def addemissions(self,emdata):
         # adds emissions data in chunks
@@ -79,31 +108,26 @@ class funWithTheEarth:
     def calculateavg(self):
         # gets the average emissions of a country and compares 
         pass
-
-        ### END SQLITE3 TIME ###
-        # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
-
-    def __str__(self): # this method added to prevent confusion if user tries to print an instance of funWithTheEarth
-
-        return "\nThis is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!\n"
     
-    def draw25(self, sets_of_25 = 1): # allows user to easily draw any number of groups of 25 cities from a list of world's biggest cities
+    def draw25(self, sets_of_25 = 1):
 
-        for num in range(sets_of_25): # for every set of 25 the user requests,
+        for num in range(sets_of_25):
 
-            responsevar = requests.get("https://worldpopulationreview.com/world-cities") # get raw internet data from big cities list
-            datavar = responsevar.text # turn that data into a big string of random HTML
-            citysoup = BeautifulSoup(datavar, "html.parser") # process datavar into a python-interpretable quasi-HTML object (a Soup)
-            citytable = citysoup.find('tbody', class_ = "jsx-2642336383") # finds the table we need
-            cityentries = citytable.find_all('tr') # finds all the lines in that table
-            return_list = [] # list to hold all the city names from each set of draw25 
-            for anyrow in cityentries[self.drawncount:self.drawncount + 25]: # for any row in the table,
-                cells = anyrow.find_all('td') # get all the cells
-                cityname = cells[1].text + ", " + cells[2].text # set cityname to "city, country"
-                return_list += [cityname] # add cityname to the list of city names
-                self.secondPart(cityname) # run each cityname through our main datastoring function to either store or retrieve it in/from SQL database
-            self.drawncount += 25 # acknowledge to this instance of funWithTheEarth that we've drawn another set of 25
-            print("\nAttempted to add the following cities to the database: {}\n".format(str(return_list))) # statement for user to see they drew 25 and which 25 were drawn
+            responsevar = requests.get("https://worldpopulationreview.com/world-cities")
+            datavar = responsevar.text
+            citysoup = BeautifulSoup(datavar, "html.parser")
+            citytable = citysoup.find('tbody', class_ = "jsx-2642336383")
+            cityentries = citytable.find_all('tr')
+            return_list = []
+            for anyrow in cityentries[self.drawncount:self.drawncount + 25]:
+                cells = anyrow.find_all('td')
+                cityname = cells[1].text + ", " + cells[2].text
+                return_list += [cityname]
+                self.secondPart(cityname)
+            self.drawncount += 25
+            print("Attempted to add the following cities to the database: {}".format(str(return_list)))
+  
+        return return_list
     
     def inputSomeStuff(self): # function for users to input place names
 
