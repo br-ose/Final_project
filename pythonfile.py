@@ -4,10 +4,22 @@ import matplotlib.pyplot as plt
 import requests
 import json
 import pandas as pd
+import math
 from shapely.geometry import Point
 import sqlite3
 import os.path
 from bs4 import BeautifulSoup
+
+# 1. Ask user for input
+# 2. convert into coordinates
+# 3. ask user for time interval
+# 4. make api call using those coordinates to get temperature and emissions data 
+# 5. create database
+# 6. store data in database 25 items at a time
+# 7. calculate change in average between two time periods 
+# 8. calculate r correlation coefficient
+# 9. visualize them all?
+
 
 class funWithTheEarth:
 
@@ -41,46 +53,58 @@ class funWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
             print("Database already created!")
-## API PART HERE
-
-def getemissions(self,country,start,end):
-    # Get average carbon monoxide emissions across a given country for the past 1 year period 
-    url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
-    results =  requests.get(url)
-    results = results.json()
-    print(results)
-    return results
-    
-def gettemp(self,country):
-    #temp is in celcius
-    # Gets the past
-    url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
-    results =  requests.get(url)
-    results = results.json()
-    print(results)
-
-def setup(self):
-    pass
-    #Sets up database
-
-def addtemp(self,tempdata):
-    ## adds the temp data to the database in chunks
-    #Shared key is country
-    pass
-def addemissions(self,emdata):
-    # adds emissions data in chunks
-    #Shared key is country
-    pass
-def calculateavg(self):
-    # gets the average emissions of a country and compares 
-    pass
-
     ### END SQLITE3 TIME ###
     # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
 
     def __str__(self):
 
         return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+    
+    def getemissions(self,coordinates,start,end):
+    # Get average carbon monoxide emissions across a given country for the past period
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
+        results =  requests.get(url)
+        results = results.json()
+        self.emissionsresults = emissions
+
+## Coordinates must be inputted as a tuple
+    def getcountryfromcoords(self,coords,file):
+        with open(file) as file2:
+            csv_reader = csv.reader(file2, delimiter=',')
+            coordlist = []
+            next(csv_reader)
+            shortest_distance = None
+            shortest_distance_coordinates = None
+            dalist = []
+            for row in csv_reader:
+                coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
+                dalist.append(row)
+            for coordinate in coordlist:
+                distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
+                if shortest_distance is None or distance < shortest_distance:
+                    shortest_distance = distance
+                    shortest_distance_coordinates = coordinate
+            for country in dalist:
+                if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
+                    return country[2]
+
+    def gettemp(self,coordinates):
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+        results =  requests.get(url)
+        results = results.json()
+        self.tempresults = results
+
+    def addtemp(self,tempdata,global_cur,global_conn):
+        ## adds the temp data to the database in chunks
+        #Shared key is coords
+        pass
+    def addemissions(self,emdata):
+        # adds emissions data in chunks
+        #Shared key is country
+        pass
+    def calculateavg(self):
+        # gets the average emissions of a country and compares 
+        pass
     
     def draw25(self, sets_of_25 = 1):
 
