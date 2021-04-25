@@ -34,13 +34,13 @@ class funWithTheEarth:
             self.global_cur.execute("DROP TABLE IF EXISTS Main_Table")
             self.global_cur.execute("CREATE TABLE Main_Table (id INTEGER PRIMARY KEY AUTOINCREMENT, point_name TEXT, longitude REAL, latitude REAL)")
 
-            print("Database created!")
+            print("\nDatabase created!\n")
 
         else:
 
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
-            print("Database already created!")
+            print("\nDatabase already created, using existing database!\n")
 
     ## API PART
 
@@ -84,7 +84,7 @@ class funWithTheEarth:
 
         def __str__(self):
 
-            return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+            return "\nThis is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!\n"
     
     def draw25(self, sets_of_25 = 1):
 
@@ -102,7 +102,7 @@ class funWithTheEarth:
                 return_list += [cityname]
                 self.secondPart(cityname)
             self.drawncount += 25
-            print("Attempted to add the following cities to the database: {}".format(str(return_list)))
+            print("\nAttempted to add the following cities to the database: {}\n".format(str(return_list)))
   
         return return_list
     
@@ -116,17 +116,22 @@ class funWithTheEarth:
 
                 userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
 
-                if userinput.lower() == 'exit':
+                if userinput.lower() == 'exit' and len(self.coordinatelist) >= 1:
 
                     self.userinputbool = False
                     break
+
+                elif userinput.lower() == 'exit' and len(self.coordinatelist) == 0:
+
+                    print("\nHey, you have to input at least one place to get this program to work, man!\n\nPlease, give me a place!\n")
+                    continue
 
                 self.secondPart(userinput)
                 accum += 1
 
             else:
 
-                print("No more data can be entered this round!")
+                print("\nNo more data can be entered this round!\n")
                 break
 
     def secondPart(self, userinput):
@@ -139,7 +144,7 @@ class funWithTheEarth:
             self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
             userinput_coordinates = self.global_cur.fetchone()
             self.coordinatelist += [userinput_coordinates]
-            print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]")
+            print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]\n")
 
         else:
 
@@ -161,7 +166,7 @@ class funWithTheEarth:
                 #if userinput_coordinates in db_coord_list:
                 # if the coordinates aren't already in the database:
                     self.coordinatelist += [userinput_coordinates]
-                    print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
+                    print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]\n")
                     coordfoundbool = True
                     
             if not coordfoundbool:
@@ -169,7 +174,7 @@ class funWithTheEarth:
                 self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
                 self.coordinatelist += [userinput_coordinates]
                 self.global_conn.commit()
-                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]")
+                print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]\n")
 
     ### OKAY THIS IS THE REAL END OF SQLITE3 TIME ###
 
