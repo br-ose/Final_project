@@ -135,17 +135,17 @@ class funWithTheEarth:
 
     def secondPart(self, userinput): # aight here's the main func of this badboi
 
-        self.global_cur.execute("SELECT point_name FROM Main_Table")
-        name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()]
+        self.global_cur.execute("SELECT point_name FROM Main_Table") # get all the names from the SQL database
+        name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()] # put em in name_list
 
-        if userinput in name_list:
+        if userinput in name_list: # if the userinput is already in the database,
 
-            self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
-            userinput_coordinates = self.global_cur.fetchone()
+            self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,)) # get the coordinates for it from the database
+            userinput_coordinates = self.global_cur.fetchone() 
 
             coordfoundbool1 = False
 
-            for anycoord in self.coordinatelist:
+            for anycoord in self.coordinatelist: # if the aforementioned coordinates are within 0.5 degrees of any coordinates entered this session,
 
                 if (anycoord[0] <= userinput_coordinates[0] + self.coordMOE 
                 and anycoord[0] >= userinput_coordinates[0] - self.coordMOE 
@@ -153,24 +153,24 @@ class funWithTheEarth:
                 and anycoord[1] >= userinput_coordinates[1] - self.coordMOE):
 
                     coordfoundbool1 = True
-                    print("\nYou've already added this place this session!\n\nPlease add a different place, or type 'exit' to stop adding to the place name list.\n")
+                    print("\nYou've already added this place this session!\n\nPlease add a different place, or type 'exit' to stop adding to the place name list.\n") # let the user know they've already added this place to this data entry session
 
-            if not coordfoundbool1:
+            if not coordfoundbool1: # else, add the coordinates to this session and acknowledge the name match
 
                 self.coordinatelist += [userinput_coordinates]
                 print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]\n")
 
-        else:
+        else: # if the userinput string isn't already in the database,
 
-            requestvar = requests.get("https://open.mapquestapi.com/geocoding/v1/address?key=XGcPnAqF2wxYdwEXRCbUd8vj6G3eAIdg&location={}".format(userinput).replace(" ", "+"))
+            requestvar = requests.get("https://open.mapquestapi.com/geocoding/v1/address?key=XGcPnAqF2wxYdwEXRCbUd8vj6G3eAIdg&location={}".format(userinput).replace(" ", "+")) # get the coordinates for that place from the internet
             datavar = json.loads(requestvar.text)
             userinput_coordinates = (float(datavar['results'][0]['locations'][0]['latLng']['lng']), float(datavar['results'][0]['locations'][0]['latLng']['lat']))
-            self.global_cur.execute("SELECT longitude, latitude FROM Main_Table")
+            self.global_cur.execute("SELECT longitude, latitude FROM Main_Table") # also get the coordinates in the database
             db_coord_list = self.global_cur.fetchall()
 
             coordfoundbool3 = False
 
-            for anycoord in self.coordinatelist:
+            for anycoord in self.coordinatelist: # if the user's already added coordinates within 0.5 degrees of their most recent input to this session,
 
                 if (anycoord[0] <= userinput_coordinates[0] + self.coordMOE 
                 and anycoord[0] >= userinput_coordinates[0] - self.coordMOE 
@@ -178,13 +178,13 @@ class funWithTheEarth:
                 and anycoord[1] >= userinput_coordinates[1] - self.coordMOE):
 
                     coordfoundbool3 = True
-                    print("\nYou've already added this place this session!\n\nPlease add a different place, or type 'exit' to stop adding to the place name list.\n")
+                    print("\nYou've already added this place this session!\n\nPlease add a different place, or type 'exit' to stop adding to the place name list.\n") # let the user know they've already added this place to this data entry session
 
-            if not coordfoundbool3:
+            if not coordfoundbool3: # if the user hasn't already added similar coordinates this sessioon,
 
                 coordfoundbool2 = False
 
-                for anycoord in db_coord_list:
+                for anycoord in db_coord_list: # see if the coordinates are in the database
                 #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
                     if (anycoord[0] <= userinput_coordinates[0] + self.coordMOE 
                     and anycoord[0] >= userinput_coordinates[0] - self.coordMOE 
@@ -192,34 +192,34 @@ class funWithTheEarth:
                     and anycoord[1] >= userinput_coordinates[1] - self.coordMOE):
                     #if userinput_coordinates in db_coord_list:
                     # if the coordinates aren't already in the database:
-                        self.coordinatelist += [userinput_coordinates]
+                        self.coordinatelist += [userinput_coordinates] # if they are, add them to this session but don't create a new database entry
                         print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]\n")
                         coordfoundbool2 = True
                         
-                if not coordfoundbool2:
+                if not coordfoundbool2: # but, if these coordinates really are brand spankin new,
 
-                    self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
+                    self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1])) # add them to both the database and the templist for this session
                     self.coordinatelist += [userinput_coordinates]
                     self.global_conn.commit()
                     print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]\n")
 
     ### OKAY THIS IS THE REAL END OF SQLITE3 TIME ###
 
-    def showMeTheMoney(self):
+    def showMeTheMoney(self): # this function produces the map visualization with data from self.inputSomeStuff
 
-        self.global_conn.close()
+        self.global_conn.close() # closes the connection to the database before doing anything, cause we don't need that bad boi hangin around do we
 
-        datapath = gpd.datasets.get_path('naturalearth_lowres')
+        datapath = gpd.datasets.get_path('naturalearth_lowres') # sets map we're using to a default map of the whole world
         worldgdf = gpd.read_file(datapath)
 
         #worlddata = worlddata[(worlddata.pop_est > 0) & (worlddata.name != "Antarctica")]
 
-        newseries = gpd.GeoSeries(Point(self.coordinatelist[0]))
+        newseries = gpd.GeoSeries(Point(self.coordinatelist[0])) # initiates a Pandas series (basically a column for a fancy data table object called a DataFrame)
 
         #seriesofnumbers = pd.Series(list(range(len())))
 
         for anycoordinates in self.coordinatelist[1:]:
-            newseries = newseries.append(gpd.GeoSeries(Point(anycoordinates)), ignore_index = True)
+            newseries = newseries.append(gpd.GeoSeries(Point(anycoordinates)), ignore_index = True) # adds the self.coordinateslist coordinates to this new series, all the while processing the coordinates into shapely.geometry Points to use on our map
 
         #joinedgdf = gpd.GeoDataFrame(geometry = worlddata.geometry.append(newseries, ignore_index = True))
 
@@ -241,39 +241,39 @@ class funWithTheEarth:
 
         #worlddata.boundary.plot()
 
-        print(list(newseries))
+        print(list(newseries)) 
 
         iterator = 1
-        secondseries = pd.Series([iterator])
+        secondseries = pd.Series([iterator]) # initiates a secondary Pandas series that we'll use to store either temp or emissions data
         #iterator = 1
 
-        for anyitem in list(newseries)[1:]:
+        for anyitem in list(newseries)[1:]: # for every place we've added in this session,
             iterator += 1
             if iterator <= 101:
-                secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True)
+                secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True) # add an arbitrary number to secondseries for it
             else:
-                secondseries = secondseries.append(pd.Series([101]), ignore_index = True)
+                secondseries = secondseries.append(pd.Series([101]), ignore_index = True) # unless we have more than 100 places, then just add the number 101
 
-        secondseries = secondseries.rename('secondseries')
+        secondseries = secondseries.rename('secondseries') # let's give our funky dude a name, yea?
 
         print(list(secondseries))
 
 
-        pointsgdf = gpd.GeoDataFrame(secondseries, geometry = newseries)
+        pointsgdf = gpd.GeoDataFrame(secondseries, geometry = newseries) # creates a GeoPandas DataFrame with both our coordinates and our data
         print(pointsgdf)
         #pointsgdf['newcolumn'] = []
         #pointsgdf.assign(newcolumn = random.randint(1,100))
         #for anyentry in pointsgdf['geometry']:
         #    pointsgdf['newcolumn'] += [random.randint(1,100)]
 
-        worldplot = worldgdf.plot(color='grey', edgecolor='black')
-        #worldplot.set_axis_bgcolor("#OFOFOF")
-        pointsgdf.plot(ax=worldplot, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # column = 'newcolumn' scheme = 'quantiles'
+        worldplot = worldgdf.plot(color='grey', edgecolor='black') # sets colors of the countries/their borders
+        #worldplot.set_axis_bgcolor("#OFOFOF") # column = 'newcolumn' scheme = 'quantiles'
+        pointsgdf.plot(ax=worldplot, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # sets the plot's map to the argument ax, chooses a color scheme with the argument cmap, chooses a dataframe column to visualize data from with the column argument, shows us a legend for that data/color scheme when we set the legend arg to True, changes marker size/edge color with those respective arguments
         #plt.legend(loc='best')
-        plt.title('Some cool climate change data (mol/m^3)')
-        plt.xlabel('Longitude')
+        plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
+        plt.xlabel('Longitude') # name the x and y axes,
         plt.ylabel('Latitude')
-        plt.show()
+        plt.show() # and poop out a window with our map on it!
 
         # HOW TO CHANGE POINT SIZE DYNAMICALLY https://gis.stackexchange.com/questions/241612/change-marker-size-in-plot-with-geopandas
 
