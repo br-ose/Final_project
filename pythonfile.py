@@ -41,6 +41,7 @@ class funWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
             print("Database already created!")
+
     ## API PART
 
     # We'll need to change this to coords instead of country at some point!
