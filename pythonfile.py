@@ -23,34 +23,37 @@ from bs4 import BeautifulSoup
 
 class funWithTheEarth:
 
-    def __init__(self):
+    def __init__(self): # iniates some key variables
 
-        self.coordinatelist = []
-        self.userinputbool = True
-        self.drawncount = 0
+        self.coordinatelist = [] # list where all the coordinates for this session are stored
+        self.userinputbool = True # variable for the while loop, guess we don't really need this
+        self.drawncount = 0 # variable for my old draw25 function
+        self.coordMOE = 0.5 # Margin of Error accepted for what is/isn't a different place; right now, anything within 0.5 geographic coordinate degrees of an existing SQL entry is considered the "same place" as the oldest existing entry in that range
 
         ### SQLITE3 TIME ###
 
-        self.global_db_name = 'testdb2'
+        self.global_db_name = 'testdb2' # database file name
 
-        def setUpDatabase(db_name):
+        def setUpDatabase(db_name): # function that creates/connects us to the SQL database
                 path = os.path.dirname(os.path.abspath(__file__))
                 conn = sqlite3.connect(path + '/' + db_name)
                 cur = conn.cursor()
                 return cur, conn
 
-        if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + self.global_db_name):
+        if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + self.global_db_name): # if the database doesn't exist yet,
 
-            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
+            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name) # make it! (apparently simply calling the setUpDatabase function creates it?)
 
-            self.global_cur.execute("DROP TABLE IF EXISTS Main_Table")
+            self.global_cur.execute("DROP TABLE IF EXISTS Main_Table") # just to be safe, format the database of any existing Main_Table
             self.global_cur.execute("CREATE TABLE Main_Table (id INTEGER PRIMARY KEY AUTOINCREMENT, point_name TEXT, longitude REAL, latitude REAL)")
 
-            print("Database created!")
+            print("\nDatabase created!\n") # statement for user to see a new database was created
 
-        else:
+        else: # if the databse already exists,
 
-            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
+            self.global_cur, self.global_conn = setUpDatabase(self.global_db_name) # just connect to it!
+
+            print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
             print("Database already created!")
     ### END SQLITE3 TIME ###
@@ -126,20 +129,35 @@ class funWithTheEarth:
   
         return return_list
     
-    def inputSomeStuff(self):
+    def inputSomeStuff(self): # function for users to input place names
 
-        while self.userinputbool:
+        accum = 0 # number of times user has input data
 
-            userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
+        while self.userinputbool: # initiate indefinite loop
 
-            if userinput.lower() == 'exit':
+            if accum <= 24: # if user has entered data 24 times or less,
 
-                self.userinputbool = False
+                userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ") # ask them to enter data
+
+                if userinput.lower() == 'exit' and len(self.coordinatelist) >= 1: # if they type 'exit' and there's data in self.coordinatelist,
+
+                    self.userinputbool = False # end the indefinite loop
+                    break 
+
+                elif userinput.lower() == 'exit' and len(self.coordinatelist) == 0: # if they type 'exit' and there's no data in self.coordinatelist,
+
+                    print("\nHey, you have to input at least one place to get this program to work, man!\n\nPlease, give me a place!\n") # ask the user to input data
+                    continue # restart the loop
+
+                self.secondPart(userinput) # if neither of the above scenarios occur, run the main data acquisition function on the user's input
+                accum += 1 # acknowledge that we added one datum to the templist
+
+            else: # if the user has requested data 25 times,
+
+                print("\nNo more data can be entered this round!\n") # tell them no
                 break
 
-            self.secondPart(userinput)
-
-    def secondPart(self, userinput):
+    def secondPart(self, userinput): # aight here's the main func of this badboi
 
         self.global_cur.execute("SELECT point_name FROM Main_Table")
         name_list = [anyentry[0] for anyentry in self.global_cur.fetchall()]
@@ -148,8 +166,23 @@ class funWithTheEarth:
 
             self.global_cur.execute("SELECT longitude, latitude FROM Main_Table WHERE point_name = ?", (userinput,))
             userinput_coordinates = self.global_cur.fetchone()
-            self.coordinatelist += [userinput_coordinates]
-            print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]")
+
+            coordfoundbool1 = False
+
+            for anycoord in self.coordinatelist:
+
+                if (anycoord[0] <= userinput_coordinates[0] + self.coordMOE 
+                and anycoord[0] >= userinput_coordinates[0] - self.coordMOE 
+                and anycoord[1] <= userinput_coordinates[1] + self.coordMOE
+                and anycoord[1] >= userinput_coordinates[1] - self.coordMOE):
+
+                    coordfoundbool1 = True
+                    print("\nYou've already added this place this session!\n\nPlease add a different place, or type 'exit' to stop adding to the place name list.\n")
+
+            if not coordfoundbool1:
+
+                self.coordinatelist += [userinput_coordinates]
+                print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via name match]\n")
 
         else:
 
@@ -159,27 +192,40 @@ class funWithTheEarth:
             self.global_cur.execute("SELECT longitude, latitude FROM Main_Table")
             db_coord_list = self.global_cur.fetchall()
 
-            coordfoundbool = False
-            coordMOE = 0.5
+            coordfoundbool3 = False
 
-            for anycoord in db_coord_list:
-            #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
-                if (anycoord[0] <= userinput_coordinates[0] + coordMOE 
-                and anycoord[0] >= userinput_coordinates[0] - coordMOE 
-                and anycoord[1] <= userinput_coordinates[1] + coordMOE
-                and anycoord[1] >= userinput_coordinates[1] - coordMOE):
-                #if userinput_coordinates in db_coord_list:
-                # if the coordinates aren't already in the database:
+            for anycoord in self.coordinatelist:
+
+                if (anycoord[0] <= userinput_coordinates[0] + self.coordMOE 
+                and anycoord[0] >= userinput_coordinates[0] - self.coordMOE 
+                and anycoord[1] <= userinput_coordinates[1] + self.coordMOE
+                and anycoord[1] >= userinput_coordinates[1] - self.coordMOE):
+
+                    coordfoundbool3 = True
+                    print("\nYou've already added this place this session!\n\nPlease add a different place, or type 'exit' to stop adding to the place name list.\n")
+
+            if not coordfoundbool3:
+
+                coordfoundbool2 = False
+
+                for anycoord in db_coord_list:
+                #                       39.5 + 1 = 40.5             40                  39.5 - 1 = 38.5            
+                    if (anycoord[0] <= userinput_coordinates[0] + self.coordMOE 
+                    and anycoord[0] >= userinput_coordinates[0] - self.coordMOE 
+                    and anycoord[1] <= userinput_coordinates[1] + self.coordMOE
+                    and anycoord[1] >= userinput_coordinates[1] - self.coordMOE):
+                    #if userinput_coordinates in db_coord_list:
+                    # if the coordinates aren't already in the database:
+                        self.coordinatelist += [userinput_coordinates]
+                        print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]\n")
+                        coordfoundbool2 = True
+                        
+                if not coordfoundbool2:
+
+                    self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
                     self.coordinatelist += [userinput_coordinates]
-                    print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [coordinates found in database via coordinate match]")
-                    coordfoundbool = True
-                    
-            if not coordfoundbool:
-
-                self.global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (userinput, userinput_coordinates[0], userinput_coordinates[1]))
-                self.coordinatelist += [userinput_coordinates]
-                self.global_conn.commit()
-                print("Added your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]")
+                    self.global_conn.commit()
+                    print("\nAdded your coordinates, " + str(userinput_coordinates) + ", to templist! [new coordinates added to database]\n")
 
     ### OKAY THIS IS THE REAL END OF SQLITE3 TIME ###
 
@@ -258,7 +304,7 @@ class funWithTheEarth:
 newInstance = funWithTheEarth()
 
 #print(newInstance)
-newInstance.draw25(4)
+#newInstance.draw25(4)
 newInstance.inputSomeStuff()
 newInstance.showMeTheMoney()
 #for anyentry in newInstance.draw25():
