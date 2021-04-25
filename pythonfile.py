@@ -41,46 +41,49 @@ class funWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(self.global_db_name)
 
             print("Database already created!")
-## API PART
+    ## API PART
 
-def getemissions(self,country,start,end):
-    # Get average carbon monoxide emissions across a given country for the past 1 year period 
-    url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
-    results =  requests.get(url)
-    results = results.json()
-    print(results)
-    return results
+    # We'll need to change this to coords instead of country at some point!
+    def getemissions(self,country,start,end):
+        # Get average carbon monoxide emissions across a given country for the past 1 year period 
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
+        results =  requests.get(url)
+        results = results.json()
+        print(results)
+        return results
     
-def gettemp(self,country):
-    #temp is in celcius
-    # Gets the past
-    url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
-    results =  requests.get(url)
-    results = results.json()
-    print(results)
+    # We'll need to change this to coords instead of country at some point!
+    def gettemp(self,country):
+        #temp is in celcius
+        # Gets the past
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+        results =  requests.get(url)
+        results = results.json()
+        print(results)
 
-def setup(self):
-    pass
-    #Sets up database
+    # This func shouldn't be needed anymore?
+    #def setup(self):
+        #pass
+        #Sets up database
 
-def addtemp(self,tempdata):
-    ## adds the temp data to the database in chunks
-    #Shared key is country
-    pass
-def addemissions(self,emdata):
-    # adds emissions data in chunks
-    #Shared key is country
-    pass
-def calculateavg(self):
-    # gets the average emissions of a country and compares 
-    pass
+    def addtemp(self,tempdata):
+        ## adds the temp data to the database in chunks
+        #Shared key is country
+        pass
+    def addemissions(self,emdata):
+        # adds emissions data in chunks
+        #Shared key is country
+        pass
+    def calculateavg(self):
+        # gets the average emissions of a country and compares 
+        pass
 
-    ### END SQLITE3 TIME ###
-    # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
+        ### END SQLITE3 TIME ###
+        # SOMETHING GOT FUCKED OVER HERE WITH THE DATABSE FILE, DEBUG THIS LATER
 
-    def __str__(self):
+        def __str__(self):
 
-        return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+            return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
     
     def draw25(self, sets_of_25 = 1):
 
@@ -104,16 +107,26 @@ def calculateavg(self):
     
     def inputSomeStuff(self):
 
+        accum = 0
+
         while self.userinputbool:
 
-            userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
+            if accum <= 24:
 
-            if userinput.lower() == 'exit':
+                userinput = input("Enter a place name to find its coordinates, or type 'exit' to stop adding to the place name list: ")
 
-                self.userinputbool = False
+                if userinput.lower() == 'exit':
+
+                    self.userinputbool = False
+                    break
+
+                self.secondPart(userinput)
+                accum += 1
+
+            else:
+
+                print("No more data can be entered this round!")
                 break
-
-            self.secondPart(userinput)
 
     def secondPart(self, userinput):
 
@@ -234,7 +247,7 @@ def calculateavg(self):
 newInstance = funWithTheEarth()
 
 #print(newInstance)
-newInstance.draw25(4)
+#newInstance.draw25(4)
 newInstance.inputSomeStuff()
 newInstance.showMeTheMoney()
 #for anyentry in newInstance.draw25():
