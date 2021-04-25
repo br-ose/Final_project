@@ -22,6 +22,16 @@ def getcountryfromcoords(coords,file):
                 if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
                     return country[2]
 
-print(getcountryfromcoords((24,-75),'countries_codes_and_coordinates.csv'))
+def gettemp(coordinates):
+        country = getcountryfromcoords(coordinates,"countries_codes_and_coordinates.csv")
+        print(country)
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip().strip('"'))
+        print(url)
+        results =  requests.get(url,timeout=5)
+        results = results.json()
+        tempresults = results
+        print(tempresults)
+
+gettemp((24,-76))
 
 

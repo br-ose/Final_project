@@ -92,15 +92,18 @@ class funWithTheEarth:
                     return country[2]
 
     def gettemp(self,coordinates):
-        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
-        results =  requests.get(url)
+        country = getcountryfromcoords(coordinates,"countries_codes_and_coordinates.csv")
+        print(country)
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip().strip('"'))
+        print(url)
+        results =  requests.get(url,timeout=5)
         results = results.json()
         self.tempresults = results
 
     def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
         #Shared key is coords
-        pass
+        global_cur.execute("CREATE TABLE tempdata (PRIMARY KEY year INTEGER, xcoord FLOAT, ycoord FLOAT, tempavg FLOAT)")
     def addemissions(self,emdata):
         # adds emissions data in chunks
         #Shared key is country
