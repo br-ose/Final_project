@@ -65,12 +65,14 @@ class funWithTheEarth:
     
     def getemissions(self,coordinates,start,end):
     # Get average carbon monoxide emissions across a given country for the past period
-        #url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
         results =  requests.get(url)
         results = results.json()
         #self.emissionsresults = emissions
 
 ## Coordinates must be inputted as a tuple
+
+#   yo i have no idea what this function is for, i trust you tho!
     def getcountryfromcoords(self,coords,file):
         with open(file) as file2:
             csv_reader = csv.reader(file2, delimiter=',')
@@ -279,36 +281,10 @@ class funWithTheEarth:
         datapath = gpd.datasets.get_path('naturalearth_lowres') # sets map we're using to a default map of the whole world
         worldgdf = gpd.read_file(datapath)
 
-        #worlddata = worlddata[(worlddata.pop_est > 0) & (worlddata.name != "Antarctica")]
-
         newseries = gpd.GeoSeries(Point(self.coordinatelist[0])) # initiates a Pandas series (basically a column for a fancy data table object called a DataFrame)
-
-        #seriesofnumbers = pd.Series(list(range(len())))
 
         for anycoordinates in self.coordinatelist[1:]:
             newseries = newseries.append(gpd.GeoSeries(Point(anycoordinates)), ignore_index = True) # adds the self.coordinateslist coordinates to this new series, all the while processing the coordinates into shapely.geometry Points to use on our map
-
-        #joinedgdf = gpd.GeoDataFrame(geometry = worlddata.geometry.append(newseries, ignore_index = True))
-
-        #print(joinedgdf)
-
-        #worlddata['random_data'] = list(range(176)) # this is how we can add data to the GeoDataFrame
-
-        #country_index_dict = {worlddata.name[number]: worlddata.index[number] for number in range(176) if number != 159} # me creating a dictionary with country names and corresponding index numbers, which are seemingly random
-        #print(country_index_dict)
-
-        #print(worlddata.index["Afghanistan"])
-
-        #joinedgdf.plot(cmap = 'Dark2')
-        #pointdata = gpd.GeoDataFrame(geometry = newseries)
-        #pointdata.plot(cmap = 'gist_rainbow')
-
-        #tennisdict = {'Novak Djokovic': 2, 'Naomi Osaka': 2, 'Rafael Nadal': 1, 'Iga Świątek': 1, 'Simona Halep': 1, 'Dominic Thiem': 1}
-        #plt.bar(list(tennisdict.keys()),list(tennisdict.values()))
-
-        #worlddata.boundary.plot()
-
-        # print(list(newseries)) 
 
         dfdict = {'secondseries': [random.randint(1,100) for anyentry in list(newseries)], 'thirdseries': [1 for anyentry in list(newseries)]}
 
@@ -318,20 +294,14 @@ class funWithTheEarth:
 
         pointsgdf = gpd.GeoDataFrame(workingdataframe, geometry = newseries) # creates a GeoPandas DataFrame with both our coordinates and our data
         print(pointsgdf)
-        #pointsgdf['newcolumn'] = []
-        #pointsgdf.assign(newcolumn = random.randint(1,100))
-        #for anyentry in pointsgdf['geometry']:
-        #    pointsgdf['newcolumn'] += [random.randint(1,100)]
 
         worldplot1 = worldgdf.plot(color='grey', edgecolor='black') # sets colors of the countries/their borders
-        #worldplot.set_axis_bgcolor("#OFOFOF") # column = 'newcolumn' scheme = 'quantiles'
         pointsgdf.plot(ax=worldplot1, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # sets the plot's map to the argument ax, chooses a color scheme with the argument cmap, chooses a dataframe column to visualize data from with the column argument, shows us a legend for that data/color scheme when we set the legend arg to True, changes marker size/edge color with those respective arguments
-        #plt.legend(loc='best')
         plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
         plt.xlabel('Longitude') # name the x and y axes,
         plt.ylabel('Latitude')
         plt.figure(1)
-        
+
         worldplot2 = worldgdf.plot(color = 'grey', edgecolor = 'black')
         pointsgdf.plot(ax=worldplot2, cmap = 'viridis', column = 'thirdseries', legend = True, edgecolor = 'black', markersize = 50)
         plt.title('Temperature change from {} to {}'.format(str(self.startyear), str(self.endyear)))
@@ -347,5 +317,3 @@ newInstance = funWithTheEarth()
 #newInstance.draw25(4)
 newInstance.inputSomeStuff()
 newInstance.showMeTheMoney()
-#for anyentry in newInstance.draw25():
-    #print(str(anyentry) + '\n\n')
