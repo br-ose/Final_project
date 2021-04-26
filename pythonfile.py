@@ -1,6 +1,6 @@
 import geopandas as gpd
 import matplotlib.pyplot as plt
-#import random
+import random
 import requests
 import json
 import pandas as pd
@@ -308,37 +308,34 @@ class funWithTheEarth:
 
         #worlddata.boundary.plot()
 
-        print(list(newseries)) 
+        # print(list(newseries)) 
 
-        iterator = 1
-        secondseries = pd.Series([iterator]) # initiates a secondary Pandas series that we'll use to store either temp or emissions data
-        #iterator = 1
+        dfdict = {'secondseries': [random.randint(1,100) for anyentry in list(newseries)], 'thirdseries': [1 for anyentry in list(newseries)]}
 
-        for anyitem in list(newseries)[1:]: # for every place we've added in this session,
-            iterator += 1
-            if iterator <= 101:
-                secondseries = secondseries.append(pd.Series([iterator]), ignore_index = True) # add an arbitrary number to secondseries for it
-            else:
-                secondseries = secondseries.append(pd.Series([101]), ignore_index = True) # unless we have more than 100 places, then just add the number 101
+        workingdataframe = pd.DataFrame(dfdict)
 
-        secondseries = secondseries.rename('secondseries') # let's give our funky dude a name, yea?
+        print(workingdataframe)
 
-        print(list(secondseries))
-
-
-        pointsgdf = gpd.GeoDataFrame(secondseries, geometry = newseries) # creates a GeoPandas DataFrame with both our coordinates and our data
+        pointsgdf = gpd.GeoDataFrame(workingdataframe, geometry = newseries) # creates a GeoPandas DataFrame with both our coordinates and our data
         print(pointsgdf)
         #pointsgdf['newcolumn'] = []
         #pointsgdf.assign(newcolumn = random.randint(1,100))
         #for anyentry in pointsgdf['geometry']:
         #    pointsgdf['newcolumn'] += [random.randint(1,100)]
 
-        worldplot = worldgdf.plot(color='grey', edgecolor='black') # sets colors of the countries/their borders
+        worldplot1 = worldgdf.plot(color='grey', edgecolor='black') # sets colors of the countries/their borders
         #worldplot.set_axis_bgcolor("#OFOFOF") # column = 'newcolumn' scheme = 'quantiles'
-        pointsgdf.plot(ax=worldplot, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # sets the plot's map to the argument ax, chooses a color scheme with the argument cmap, chooses a dataframe column to visualize data from with the column argument, shows us a legend for that data/color scheme when we set the legend arg to True, changes marker size/edge color with those respective arguments
+        pointsgdf.plot(ax=worldplot1, cmap = 'viridis', column = 'secondseries', legend = True, edgecolor = 'black', markersize = 50) # sets the plot's map to the argument ax, chooses a color scheme with the argument cmap, chooses a dataframe column to visualize data from with the column argument, shows us a legend for that data/color scheme when we set the legend arg to True, changes marker size/edge color with those respective arguments
         #plt.legend(loc='best')
         plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
         plt.xlabel('Longitude') # name the x and y axes,
+        plt.ylabel('Latitude')
+        plt.figure(1)
+        
+        worldplot2 = worldgdf.plot(color = 'grey', edgecolor = 'black')
+        pointsgdf.plot(ax=worldplot2, cmap = 'viridis', column = 'thirdseries', legend = True, edgecolor = 'black', markersize = 50)
+        plt.title('Temperature change from {} to {}'.format(str(self.startyear), str(self.endyear)))
+        plt.xlabel('Longitude')
         plt.ylabel('Latitude')
         plt.show() # and poop out a window with our map on it!
 
