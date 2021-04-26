@@ -11,11 +11,11 @@ import os.path
 from bs4 import BeautifulSoup
 import csv
 
-# 1. Ask user for input
-# 2. convert into coordinates
-# 3. ask user for time interval
-# 4. make api call using those coordinates to get temperature and emissions data 
-# 5. create database
+# 1. Ask user for input -done
+# 2. convert into coordinates - done
+# 3. ask user for time interval - done
+# 4. make api call using those coordinates to get temperature and emissions data - done
+# 5. create database 
 # 6. store data in database 25 items at a time 
 # 7. calculate change in average between two time periods 
 # 8. calculate r correlation coefficient
@@ -66,41 +66,42 @@ class funWithTheEarth:
 
         return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
     
-    def getemissions(self,coordinates,start,end):
+    def getemissions(self,coordinates):
     # Get average carbon monoxide emissions across a given country for the past period
-        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,end)
+    ## Get average recent emissions
+    # use fixed full date
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(coordinates,start,start)
         results =  requests.get(url)
         results = results.json()
-        #self.emissionsresults = emissions
+        self.emissionsresults = emissions
 
 ## Coordinates must be inputted as a tuple
 
 #   yo i have no idea what this function is for, i trust you tho!
-    def getcountryfromcoords(self,coords,file):
-        with open(file) as file2:
-            csv_reader = csv.reader(file2, delimiter=',')
-            coordlist = []
-            next(csv_reader)
-            shortest_distance = None
-            shortest_distance_coordinates = None
-            dalist = []
-            for row in csv_reader:
-                coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
-                dalist.append(row)
-            for coordinate in coordlist:
-                distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
-                if shortest_distance is None or distance < shortest_distance:
-                    shortest_distance = distance
-                    shortest_distance_coordinates = coordinate
-            for country in dalist:
-                if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
-                    return country[2]
+    # def getcountryfromcoords(self,coords,file):
+    #     with open(file) as file2:
+    #         csv_reader = csv.reader(file2, delimiter=',')
+    #         coordlist = []
+    #         next(csv_reader)
+    #         shortest_distance = None
+    #         shortest_distance_coordinates = None
+    #         dalist = []
+    #         for row in csv_reader:
+    #             coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
+    #             dalist.append(row)
+    #         for coordinate in coordlist:
+    #             distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
+    #             if shortest_distance is None or distance < shortest_distance:
+    #                 shortest_distance = distance
+    #                 shortest_distance_coordinates = coordinate
+    #         for country in dalist:
+    #             if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
+    #                 return country[2]
 
-    def gettemp(self,coordinates):
+    def gettemp(self,country):
         url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
         results =  requests.get(url)
         results = results.json()
-        self.tempresults = results
 
     def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
