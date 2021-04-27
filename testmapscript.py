@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from shapely.geometry import Point
 import os.path
-import csv
 import random
 import sqlite3
 import requests
@@ -20,26 +19,31 @@ class doneWithTheEarth:
         self.worldgdf = gpd.read_file(datapath)
         (self.worldgdf.at[21, 'iso_a3'], self.worldgdf.at[43, 'iso_a3'], self.worldgdf.at[174, 'iso_a3']) = ('NOR', 'FRA', 'XKX') # adds Norway, France, Kosovo
 
-        # global_db_name = 'testdb2' # database file name
+        # i'm gonna redo the database stuff in a minute
 
-        # def setUpDatabase(db_name): # function that creates/connects us to the SQL database
-        #         path = os.path.dirname(os.path.abspath(__file__))
-        #         conn = sqlite3.connect(path + '/' + db_name)
-        #         cur = conn.cursor()
-        #         return cur, conn
+        global_db_name = 'testdb2' # database file name
 
-        # if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + global_db_name): # if the database doesn't exist yet,
-        #     global_cur, global_conn = setUpDatabase(global_db_name) # make it! (apparently simply calling the setUpDatabase function creates it?)
-        #     global_cur.execute("DROP TABLE IF EXISTS Main_Table") # just to be safe, format the database of any existing Main_Table
-        #     global_cur.execute("CREATE TABLE Main_Table (id INTEGER PRIMARY KEY AUTOINCREMENT, point_name TEXT, longitude REAL, latitude REAL)")
+        def setUpDatabase(db_name): # function that creates/connects us to the SQL database
+            path = os.path.dirname(os.path.abspath(__file__))
+            conn = sqlite3.connect(path + '/' + db_name)
+            cur = conn.cursor()
+            return cur, conn
+
+        if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + global_db_name): # if the database doesn't exist yet,
+            self.global_cur, self.global_conn = setUpDatabase(global_db_name) # make it! (apparently simply calling the setUpDatabase function creates it?)
+            self.global_cur.execute("DROP TABLE IF EXISTS Emissions_Data") # just to be safe, format the database of any existing Main_Table
+            self.global_cur.execute("CREATE TABLE Emissions_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, emissions REAL)")
+            self.global_cur.execute("DROP TABLE IF EXISTS Temperature_Data") # just to be safe, format the database of any existing Main_Table
+            self.global_cur.execute("CREATE TABLE Temperature_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, tempchange REAL, startyear INTEGER, endyear INTEGER)")
+            self.global_conn.commit()
         #     for anyentry in worldgdf['iso_a3']:
         #         global_cur.execute("INSERT INTO Main_Table (point_name, longitude, latitude) VALUES (?, ?, ?)", (anyentry, None, None))
         #     global_conn.commit()
-        #     print("\nDatabase created!\n") # statement for user to see a new database was created
+            print("\nDatabase created!\n") # statement for user to see a new database was created
 
-        # else: # if the databse already exists,
-        #     global_cur, global_conn = setUpDatabase(global_db_name) # just connect to it!
-        #     print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
+        else: # if the databse already exists,
+            self.global_cur, self.global_conn = setUpDatabase(global_db_name) # just connect to it!
+            print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
     def getemissions(self,country):
     # Get average carbon monoxide emissions across a given country for the past period
@@ -123,9 +127,9 @@ class doneWithTheEarth:
         randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
         self.worldgdf['randomvals'], self.worldgdf['randomvals2'] = randomvalslist, randomvalslist2
 
-        #global_conn.close()
-
     def showMap(self):
+
+        self.global_conn.close()
 
         self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['randomvals'], cmap = 'viridis', legend = True)
         plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
