@@ -118,9 +118,9 @@ class funWithTheEarth:
 
     def addemissions(cur,conn,emissionsresults,country):
         cur.execute("INSERT OR REPLACE INTO emissionsdata(country,tempchange) VALUES(?,?)",(country,emissionsresults))
-    def calculateavg(self):
-        # gets the average emissions of a country and compares 
-        pass
+    def compare(cur,conn):
+        cur.execute("")
+
     
     def draw25(self, sets_of_25 = 1):
 

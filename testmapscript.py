@@ -31,7 +31,7 @@ class doneWithTheEarth:
 
         if not os.path.exists(os.path.dirname(os.path.abspath(__file__)) + '/' + global_db_name): # if the database doesn't exist yet,
             self.global_cur, self.global_conn = setUpDatabase(global_db_name) # make it! (apparently simply calling the setUpDatabase function creates it?)
-            self.global_cur.execute("DROP TABLE IF EXISTS Emissions_Data") # just to be safe, format the database of any existing Main_Table
+            self.global_cur.execute("DROP TABLE IF EXISTS Emissions_Data") # just to be safe, format the database of any existing Main_Table    
             self.global_cur.execute("CREATE TABLE Emissions_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, emissions REAL)")
             self.global_cur.execute("DROP TABLE IF EXISTS Temperature_Data") # just to be safe, format the database of any existing Main_Table
             self.global_cur.execute("CREATE TABLE Temperature_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, tempchange REAL, startyear INTEGER, endyear INTEGER)")
@@ -49,19 +49,46 @@ class doneWithTheEarth:
     # Get average carbon monoxide emissions across a given country for the past period
     ## Get average recent emissions
     # use fixed full date
-        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,"2017","2019")
-        datavar =  requests.get(url)
-        jsonvar = datavar.json()
-        # self.emissionsresults = # emissions ???
+    # returns average
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin=2018-12-31&end=2021-4-25".format(country)
+        results =  requests.get(url)
+        results = results.json()
+        totalresult = 0
+        for result in results:
+            totalresult += result
+        totalresult = totalresult/len(results)
+        return totalresult
 
-    def gettemp(self,country):
-        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
-        datavar =  requests.get(url)
-        jsonvar = datavar.json()
+    def gettemp(self,country,year1,year2):
+        ## Both years should be positive integers and year 2 should be a greater number than year 1
+        ### year1 is lower bound year2 is higher one
+        ### coordinates is coordinates
+        ### Returns the difference
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip())
+        print(url) 
+        results =  requests.get(url)
+        results = results.json()
+        ## This is just difference in two values
+        for result in results:
+            if result["year"] == int(year1):
+                lowerdata = result["data"]
+            if result["year"] == int(year2):
+                higherdata = result["data"]
+        try:
+            lowerdata
+        except NameError:
+            print("Earlier year not in the database!")
+            return 0 
+        try:
+            higherdata
+        except NameError:
+            print("Later year not in the database!")
+            return 0
+        return higherdata - lowerdata
 
     def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
-        #Shared key is coords
+        #Shared key is country
         pass
 
     def addemissions(self,emdata):
