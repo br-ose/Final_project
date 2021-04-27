@@ -45,6 +45,10 @@ class doneWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(global_db_name) # just connect to it!
             print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
+    def __str__(self):
+
+        return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+
     def getemissions(self,country):
     # Get average carbon monoxide emissions across a given country for the past period
     ## Get average recent emissions
@@ -115,7 +119,7 @@ class doneWithTheEarth:
             if chosencountry not in self.userinputlist:
                 self.userinputlist += [chosencountry]
         
-        print(len(self.userinputlist))
+        # print(len(self.userinputlist))
 
     def populateData(self):
 
@@ -142,9 +146,9 @@ class doneWithTheEarth:
         plt.ylabel('Latitude')
         plt.show()
 
-newInstance = doneWithTheEarth()
+#newInstance = doneWithTheEarth()
 
-newInstance.getUserInput()
-newInstance.autocomplete()
-newInstance.populateData()
-newInstance.showMap()
+#newInstance.getUserInput()
+#newInstance.autocomplete()
+#newInstance.populateData()
+#newInstance.showMap()
