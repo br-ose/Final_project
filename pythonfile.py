@@ -71,7 +71,7 @@ class funWithTheEarth:
     ## Get average recent emissions
     # use fixed full date
     # returns average
-        country = getcountryfromcoords(coordinates,"countries_cordes_and_coordinates.csv")
+        country = getcountryfromcoords(coordinates,"countries_codes_and_coordinates.csv")
         url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin=2018-12-31&end=2021-4-25".format(country)
         results =  requests.get(url)
         results = results.json()
