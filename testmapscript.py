@@ -6,6 +6,8 @@ import os.path
 import csv
 import random
 import sqlite3
+import requests
+import json
 
 class doneWithTheEarth:
 
@@ -39,6 +41,34 @@ class doneWithTheEarth:
         #     global_cur, global_conn = setUpDatabase(global_db_name) # just connect to it!
         #     print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
+    def getemissions(self,country):
+    # Get average carbon monoxide emissions across a given country for the past period
+    ## Get average recent emissions
+    # use fixed full date
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,"2017","2019")
+        datavar =  requests.get(url)
+        jsonvar = datavar.json()
+        # self.emissionsresults = # emissions ???
+
+    def gettemp(self,country):
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+        datavar =  requests.get(url)
+        jsonvar = datavar.json()
+
+    def addtemp(self,tempdata,global_cur,global_conn):
+        ## adds the temp data to the database in chunks
+        #Shared key is coords
+        pass
+
+    def addemissions(self,emdata):
+        # adds emissions data in chunks
+        #Shared key is country
+        pass
+    
+    def calculateavg(self):
+        # gets the average emissions of a country and compares 
+        pass
+
     def getUserInput(self):
 
         loopbool = True
@@ -46,8 +76,8 @@ class doneWithTheEarth:
         accum = 0
 
         while loopbool:
-            userinput = input("Input an ISO3 country code to compare it to other countries on a map, or type 'exit': ")
-            if userinput == 'exit':
+            userinput = input("Input an ISO3 country code to compare it to other countries on a map, or type 'exit': ").upper()
+            if userinput == 'EXIT':
                 loopbool = False
             elif userinput.isalpha() and len(userinput) == 3 and userinput in list(self.worldgdf['iso_a3']) and accum < 25:
                 self.userinputlist += [userinput]
@@ -76,11 +106,11 @@ class doneWithTheEarth:
                 print("Invalid input, try again.")
                 continue
 
-        # for anyrow in ben's data table(s):
-        #     index_num = list(worldgdf['iso_a3']).index(anyrow's country)
-        #     worldgdf.at[index_num, 'datacolumn'] = datavalue
+    def populateData(self):
 
-    def populateRandomData(self):
+        # for anyrow in ben's data table(s):
+        #     index_num = list(worldgdf['iso_a3']).index(anyrow's country ### this should be anyrow[2]??? ### )
+        #     (worldgdf.at[index_num, 'datacolumn1'], worldgdf.at[index_num, 'datacolumn2']) = (datavalue1, datavalue2)
 
         randomvalslist = [random.random() + 1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
         randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
@@ -98,5 +128,5 @@ class doneWithTheEarth:
 newInstance = doneWithTheEarth()
 
 newInstance.getUserInput()
-newInstance.populateRandomData()
+newInstance.populateData()
 newInstance.showMap()
