@@ -67,35 +67,39 @@ class funWithTheEarth:
     # Get average carbon monoxide emissions across a given country for the past period
     ## Get average recent emissions
     # use fixed full date
-        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(coordinates,start,start)
+        country = getcountryfromcoords(coordinates,"countries_cordes_and_coordinates.csv")
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,start)
         results =  requests.get(url)
         results = results.json()
+        for result in results:
+            
         self.emissionsresults = emissions
 
 ## Coordinates must be inputted as a tuple
 
-#   yo i have no idea what this function is for, i trust you tho!
-    # def getcountryfromcoords(self,coords,file):
-    #     with open(file) as file2:
-    #         csv_reader = csv.reader(file2, delimiter=',')
-    #         coordlist = []
-    #         next(csv_reader)
-    #         shortest_distance = None
-    #         shortest_distance_coordinates = None
-    #         dalist = []
-    #         for row in csv_reader:
-    #             coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
-    #             dalist.append(row)
-    #         for coordinate in coordlist:
-    #             distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
-    #             if shortest_distance is None or distance < shortest_distance:
-    #                 shortest_distance = distance
-    #                 shortest_distance_coordinates = coordinate
-    #         for country in dalist:
-    #             if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
-    #                 return country[2]
+#   takes in coordinates and returns country code
+    def getcountryfromcoords(self,coords,file):
+        with open(file) as file2:
+            csv_reader = csv.reader(file2, delimiter=',')
+            coordlist = []
+            next(csv_reader)
+            shortest_distance = None
+            shortest_distance_coordinates = None
+            dalist = []
+            for row in csv_reader:
+                coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
+                dalist.append(row)
+            for coordinate in coordlist:
+                distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
+                if shortest_distance is None or distance < shortest_distance:
+                    shortest_distance = distance
+                    shortest_distance_coordinates = coordinate
+            for country in dalist:
+                if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
+                    return country[2]
 
-    def gettemp(self,country):
+    def gettemp(self,coordinates):
+        country = getcountryfromcoords(coordinates,"countries_cordes_and_coordinates.csv")
         url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
         results =  requests.get(url)
         results = results.json()
