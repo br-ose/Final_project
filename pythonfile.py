@@ -31,6 +31,9 @@ class funWithTheEarth:
         self.drawncount = 0 # variable for my old draw25 function
         self.coordMOE = 0.5 # Margin of Error accepted for what is/isn't a different place; right now, anything within 0.5 geographic coordinate degrees of an existing SQL entry is considered the "same place" as the oldest existing entry in that range
 
+        self.startyear = 1901
+        self.endyear = 2001
+
         ### SQLITE3 TIME ###
 
         self.global_db_name = 'testdb2' # database file name
@@ -163,9 +166,6 @@ class funWithTheEarth:
 
                 print("\nNo more data can be entered this round!\n") # tell them no
                 break
-
-        self.startyear = 1901
-        self.endyear = 2001
 
         workingbool = True
         
@@ -319,6 +319,6 @@ class funWithTheEarth:
 newInstance = funWithTheEarth()
 
 #print(newInstance)
-#newInstance.draw25(4)
-newInstance.inputSomeStuff()
+newInstance.draw25(4)
+#newInstance.inputSomeStuff()
 newInstance.showMeTheMoney()
