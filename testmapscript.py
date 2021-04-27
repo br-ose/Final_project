@@ -73,16 +73,14 @@ class doneWithTheEarth:
 
         loopbool = True
         loopbool2 = True
-        accum = 0
 
         while loopbool:
             userinput = input("Input an ISO3 country code to compare it to other countries on a map, or type 'exit': ").upper()
             if userinput == 'EXIT':
                 loopbool = False
-            elif userinput.isalpha() and len(userinput) == 3 and userinput in list(self.worldgdf['iso_a3']) and accum < 25:
+            elif userinput.isalpha() and len(userinput) == 3 and userinput in list(self.worldgdf['iso_a3']) and len(self.userinputlist) < 25:
                 self.userinputlist += [userinput]
-                accum += 1
-            elif accum >= 25:
+            elif len(self.userinputlist) >= 25:
                 print("Maximum (25) entries made this session, please type 'exit'.")
                 continue
             else:
@@ -105,6 +103,15 @@ class doneWithTheEarth:
             else:
                 print("Invalid input, try again.")
                 continue
+
+    def autocomplete(self):
+
+        while len(self.userinputlist) < 25:
+            chosencountry = random.choice(self.worldgdf['iso_a3'])
+            if chosencountry not in self.userinputlist:
+                self.userinputlist += [chosencountry]
+        
+        print(len(self.userinputlist))
 
     def populateData(self):
 
@@ -134,5 +141,6 @@ class doneWithTheEarth:
 newInstance = doneWithTheEarth()
 
 newInstance.getUserInput()
+newInstance.autocomplete()
 newInstance.populateData()
 newInstance.showMap()
