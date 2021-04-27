@@ -1,6 +1,8 @@
 import requests
 import math
 import csv
+import os
+import sqlite3
 
 def getcountryfromcoords(coords,file):
         with open(file) as file2:
@@ -57,12 +59,22 @@ def setUpDatabase(db_name):
      cur = conn.cursor()    
      return cur, conn
 def createtempdatabase(cur,conn):
-    cur.execute("CREATE TABLE IF NOT EXISTS tempdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, tempchange REAL")
+    cur.execute("CREATE TABLE IF NOT EXISTS tempdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, tempchange REAL)")
+    conn.commit()
+def createemissionsdatabase(cur,conn):
+    cur.execute("CREATE TABLE IF NOT EXISTS emissionsdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, emissionsavg REAL)")
+    conn.commit()
 
-def addtemps(cur,conn,tempresults):
-    pass
+def addtemps(cur,conn,tempresults,country):
+    cur.execute("INSERT OR REPLACE INTO tempdata(country,tempchange) VALUES(?,?)",(country,tempresults))
+
+def addemissions(cur,conn,emissionsresults,country):
+    cur.execute("INSERT OR REPLACE INTO emissionsdata(country,tempchange) VALUES(?,?)",(country,emissionsresults))
+
 
     
 print(gettemp((24,-76),1920,2012))
-
-
+cur,conn = setUpDatabase("testbase.db")
+createtempdatabase(cur,conn)
+createemissionsdatabase(cur,conn)
+addemissions(cur,conn,"USA",20.0)
