@@ -111,24 +111,29 @@ class funWithTheEarth:
         ### year1 is lower bound year2 is higher one
         ### coordinates is coordinates
         ### Returns the difference
-        country = getcountryfromcoords(coordinates,"countries_cordes_and_coordinates.csv")
-        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+        country = getcountryfromcoords(coordinates,"countries_codes_and_coordinates.csv")
+        print(country)
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip().rstrip('"').lstrip('"'))
+        print(url) 
         results =  requests.get(url)
         results = results.json()
+        ## This is just difference in two values
         for result in results:
-            if result[0] == int(year1):
-                lowerdata = result[1]
-            if result[0] == int(year2):
-                higherdata = result[1]
+            if result["year"] == int(year1):
+                lowerdata = result["data"]
+            if result["year"] == int(year2):
+                higherdata = result["data"]
         try:
             lowerdata
         except NameError:
             print("Earlier year not in the database!")
+            return 0 
         try:
             higherdata
         except NameError:
             print("Later year not in the database!")
-        return year2 - year1
+            return 0
+        return higherdata - lowerdata
 
     def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
