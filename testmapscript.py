@@ -64,7 +64,7 @@ class doneWithTheEarth:
         # adds emissions data in chunks
         #Shared key is country
         pass
-    
+
     def calculateavg(self):
         # gets the average emissions of a country and compares 
         pass
@@ -100,7 +100,7 @@ class doneWithTheEarth:
             and len(userinput2[5:]) == 4
             and int(userinput2[5:]) >= 1901
             and int(userinput2[5:]) <= 2012):
-                yeartuple = (int(userinput2[:4]), int(userinput2[5:]))
+                self.yeartuple = (int(userinput2[:4]), int(userinput2[5:]))
                 loopbool2 = False
             else:
                 print("Invalid input, try again.")
@@ -121,8 +121,14 @@ class doneWithTheEarth:
     def showMap(self):
 
         self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['randomvals'], cmap = 'viridis', legend = True)
+        plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
+        plt.xlabel('Longitude') # name the x and y axes,
+        plt.ylabel('Latitude')
         plt.figure(1)
         self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['randomvals2'], cmap = 'viridis', legend = True)
+        plt.title('Temperature change from {} to {}'.format(str(self.yeartuple[0]), str(self.yeartuple[1])))
+        plt.xlabel('Longitude')
+        plt.ylabel('Latitude')
         plt.show()
 
 newInstance = doneWithTheEarth()
