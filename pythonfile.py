@@ -70,13 +70,18 @@ class funWithTheEarth:
     # Get average carbon monoxide emissions across a given country for the past period
     ## Get average recent emissions
     # use fixed full date
+    # returns average
         country = getcountryfromcoords(coordinates,"countries_cordes_and_coordinates.csv")
-        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(country,start,start)
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin=2018-12-31&end=2021-4-25".format(country)
         results =  requests.get(url)
         results = results.json()
+        totalresult = 0
         for result in results:
-            
-        self.emissionsresults = emissions
+            totalresult += result
+        totalresult = totalresult/len(results)
+        return totalresult
+
+
 
 ## Coordinates must be inputted as a tuple
 
@@ -101,11 +106,29 @@ class funWithTheEarth:
                 if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
                     return country[2]
 
-    def gettemp(self,coordinates):
+    def gettemp(self,coordinates,year1,year2):
+        ## Both years should be positive integers and year 2 should be a greater number than year 1
+        ### year1 is lower bound year2 is higher one
+        ### coordinates is coordinates
+        ### Returns the difference
         country = getcountryfromcoords(coordinates,"countries_cordes_and_coordinates.csv")
         url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
         results =  requests.get(url)
         results = results.json()
+        for result in results:
+            if result[0] == int(year1):
+                lowerdata = result[1]
+            if result[0] == int(year2):
+                higherdata = result[1]
+        try:
+            lowerdata
+        except NameError:
+            print("Earlier year not in the database!")
+        try:
+            higherdata
+        except NameError:
+            print("Later year not in the database!")
+        return year2 - year1
 
     def addtemp(self,tempdata,global_cur,global_conn):
         ## adds the temp data to the database in chunks
