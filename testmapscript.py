@@ -155,6 +155,22 @@ class doneWithTheEarth:
                 break
         self.global_conn.commit()
     
+    def calculatedata(self):
+        cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MAX(emissions) FROM Emissions_Data)")
+        highest = cur.fetchone()
+        cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MIN(emissions) FROM Emissions_Data)")
+        lowest = cur.fetchone()
+        print(highest)
+        print(lowest)
+        cur.execute("SELECT Emissions_Data.iso_a3,Emissions_Data.emissions,Temperature_Data.tempchange FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(highest[1],))
+        highestval = cur.fetchone()
+        cur.execute("SELECT Emissions_Data.iso_a3,Emissions_Data.emissions,Temperature_Data.tempchange Temperature_Data. FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(lowest[1],))
+        lowestval = cur.fetchone()
+        f = open("highestandlowest.txt","w")
+        f.write("The ISO3 code of the country with the highest recent carbon monoxide emissions was {}.\nIt emitted {} mol/m^2 of carbon monoxide on average over the past 3 years, and experienced a {} degree celcius change in average temperature over the past {} years.\n".format(highestval[0],highestval[1],highestval[2],self.yeartuple[1]-self.yeartuple[0]))
+        f.write("The ISO3 code of the country with the lowest recent carbon monoxide emissions was {}.\nIt emitted {} mol/m^2 of carbon monoxide on average over the past 3 years, and experienced a {} degree celcius change in average temperature over the past {} years.\n".format(lowestval[0],lowestval[1],lowestval[2],self.yeartuple[1]-self.yeartuple[0]))
+        f.close()
+
     def autocomplete(self):
 
         while len(self.userinputlist) < 25:
