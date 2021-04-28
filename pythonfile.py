@@ -66,54 +66,61 @@ class funWithTheEarth:
 
         return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
     
-    def getemissions(self,coordinates):
+    def getemissions(self,country):
     # Get average carbon monoxide emissions across a given country for the past period
     ## Get average recent emissions
     # use fixed full date
-        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin={}&end={}".format(coordinates,start,start)
+    # returns average
+        url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin=2018-12-31&end=2021-4-25".format(country)
         results =  requests.get(url)
         results = results.json()
-        self.emissionsresults = emissions
+        totalresult = 0
+        for result in results:
+            totalresult += result
+        totalresult = totalresult/len(results)
+        return totalresult
+
+
 
 ## Coordinates must be inputted as a tuple
 
-#   yo i have no idea what this function is for, i trust you tho!
-    # def getcountryfromcoords(self,coords,file):
-    #     with open(file) as file2:
-    #         csv_reader = csv.reader(file2, delimiter=',')
-    #         coordlist = []
-    #         next(csv_reader)
-    #         shortest_distance = None
-    #         shortest_distance_coordinates = None
-    #         dalist = []
-    #         for row in csv_reader:
-    #             coordlist.append((float(row[4].strip().strip('"')),float(row[5].strip().strip('"'))))
-    #             dalist.append(row)
-    #         for coordinate in coordlist:
-    #             distance = math.sqrt(((coordinate[0]-coords[0])**2)+((coordinate[1]-coords[1])**2))
-    #             if shortest_distance is None or distance < shortest_distance:
-    #                 shortest_distance = distance
-    #                 shortest_distance_coordinates = coordinate
-    #         for country in dalist:
-    #             if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
-    #                 return country[2]
 
-    def gettemp(self,country):
-        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country)   
+    def gettemp(self,country,year1,year2):
+        ## Both years should be positive integers and year 2 should be a greater number than year 1
+        ### year1 is lower bound year2 is higher one
+        ### coordinates is coordinates
+        ### Returns the difference
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip())
+        print(url) 
         results =  requests.get(url)
         results = results.json()
+        ## This is just difference in two values
+        for result in results:
+            if result["year"] == int(year1):
+                lowerdata = result["data"]
+            if result["year"] == int(year2):
+                higherdata = result["data"]
+        try:
+            lowerdata
+        except NameError:
+            print("Earlier year not in the database!")
+            return 0 
+        try:
+            higherdata
+        except NameError:
+            print("Later year not in the database!")
+            return 0
+        return higherdata - lowerdata
 
-    def addtemp(self,tempdata,global_cur,global_conn):
-        ## adds the temp data to the database in chunks
-        #Shared key is coords
-        pass
-    def addemissions(self,emdata):
-        # adds emissions data in chunks
-        #Shared key is country
-        pass
-    def calculateavg(self):
-        # gets the average emissions of a country and compares 
-        pass
+
+    def addtemps(cur,conn,tempresults,country):
+        cur.execute("INSERT OR REPLACE INTO tempdata(country,tempchange) VALUES(?,?)",(country,tempresults))
+
+    def addemissions(cur,conn,emissionsresults,country):
+        cur.execute("INSERT OR REPLACE INTO emissionsdata(country,tempchange) VALUES(?,?)",(country,emissionsresults))
+    def compare(cur,conn):
+        cur.execute("")
+
     
     def draw25(self, sets_of_25 = 1):
 

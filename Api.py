@@ -1,6 +1,8 @@
 import requests
 import math
 import csv
+import os
+import sqlite3
 
 def getcountryfromcoords(coords,file):
         with open(file) as file2:
@@ -22,16 +24,57 @@ def getcountryfromcoords(coords,file):
                 if float(country[4].strip().strip('"')) == shortest_distance_coordinates[0] and float(country[5].strip().strip('"')) == shortest_distance_coordinates[1]:
                     return country[2]
 
-def gettemp(coordinates):
+def gettemp(coordinates,year1,year2):
+        ## Both years should be positive integers and year 2 should be a greater number than year 1
+        ### year1 is lower bound year2 is higher one
+        ### coordinates is coordinates
+        ### Returns the difference
         country = getcountryfromcoords(coordinates,"countries_codes_and_coordinates.csv")
         print(country)
-        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip().strip('"'))
-        print(url)
-        results =  requests.get(url,timeout=5)
+        url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip().rstrip('"').lstrip('"'))
+        print(url) 
+        results =  requests.get(url)
         results = results.json()
-        tempresults = results
-        print(tempresults)
+        ## This is just difference in two values
+        for result in results:
+            if result["year"] == int(year1):
+                lowerdata = result["data"]
+            if result["year"] == int(year2):
+                higherdata = result["data"]
+        try:
+            lowerdata
+        except NameError:
+            print("Earlier year not in the database!")
+            return 0 
+        try:
+            higherdata
+        except NameError:
+            print("Later year not in the database!")
+            return 0
+        return higherdata - lowerdata
 
-gettemp((24,-76))
+def setUpDatabase(db_name):   
+     path = os.path.dirname(os.path.abspath(__file__))    
+     conn = sqlite3.connect(path+'/'+db_name)    
+     cur = conn.cursor()    
+     return cur, conn
+def createtempdatabase(cur,conn):
+    cur.execute("CREATE TABLE IF NOT EXISTS tempdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, tempchange REAL)")
+    conn.commit()
+def createemissionsdatabase(cur,conn):
+    cur.execute("CREATE TABLE IF NOT EXISTS emissionsdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, emissionsavg REAL)")
+    conn.commit()
+
+def addtemps(cur,conn,tempresults,country):
+    cur.execute("INSERT OR REPLACE INTO tempdata(country,tempchange) VALUES(?,?)",(country,tempresults))
+
+def addemissions(cur,conn,emissionsresults,country):
+    cur.execute("INSERT OR REPLACE INTO emissionsdata(country,tempchange) VALUES(?,?)",(country,emissionsresults))
 
 
+    
+print(gettemp((24,-76),1920,2012))
+cur,conn = setUpDatabase("testbase.db")
+createtempdatabase(cur,conn)
+createemissionsdatabase(cur,conn)
+addemissions(cur,conn,"USA",20.0)
