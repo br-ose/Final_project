@@ -173,6 +173,11 @@ class doneWithTheEarth:
         #randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
         #self.worldgdf['randomvals'], self.worldgdf['randomvals2'] = randomvalslist, randomvalslist2
 
+        for anyentry in self.userinputlist:
+            self.global_cur.execute("SELECT ")
+        
+        pass
+
     def showMap(self):
 
         self.global_conn.close()
@@ -188,9 +193,10 @@ class doneWithTheEarth:
         plt.ylabel('Latitude')
         plt.show()
 
-#newInstance = doneWithTheEarth()
+newInstance = doneWithTheEarth()
 
 #newInstance.getUserInput()
 #newInstance.autocomplete()
 #newInstance.populateData()
 #newInstance.showMap()
+#newInstance.populateEmissionsData()
