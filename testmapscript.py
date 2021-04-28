@@ -176,9 +176,9 @@ class doneWithTheEarth:
         lowest = self.global_cur.fetchone()
         print(highest)
         print(lowest)
-        self.global_cur.execute("SELECT Emissions_Data.iso_a3,Emissions_Data.emissions,Temperature_Data.tempchange FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(highest[1],))
+        self.global_cur.execute("SELECT Emissions_Data.iso_a3, Emissions_Data.emissions, Temperature_Data.tempchange FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(highest[1],))
         highestval = self.global_cur.fetchone()
-        self.global_cur.execute("SELECT Emissions_Data.iso_a3,Emissions_Data.emissions,Temperature_Data.tempchange Temperature_Data. FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(lowest[1],))
+        self.global_cur.execute("SELECT Emissions_Data.iso_a3, Emissions_Data.emissions, Temperature_Data.tempchange FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(lowest[1],))
         lowestval = self.global_cur.fetchone()
         f = open("highestandlowest.txt","w")
         f.write("The ISO3 code of the country with the highest recent carbon monoxide emissions was {}.\nIt emitted {} mol/m^2 of carbon monoxide on average over the past 3 years, and experienced a {} degree celcius change in average temperature over the past {} years.\n".format(highestval[0],highestval[1],highestval[2],self.yeartuple[1]-self.yeartuple[0]))
@@ -245,7 +245,7 @@ class doneWithTheEarth:
         self.global_conn.close()
 
         self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['emissions'], cmap = 'viridis', legend = True)
-        plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
+        plt.title('Parts per million of carbon monoxide\nin the past three years (mol/m^3)') # gives our map a title
         plt.xlabel('Longitude') # name the x and y axes,
         plt.ylabel('Latitude')
         plt.figure(1)
@@ -257,9 +257,10 @@ class doneWithTheEarth:
 
 newInstance = doneWithTheEarth()
 
+#newInstance.calculatedata()
 newInstance.getUserInput()
 #newInstance.autocomplete()
-newInstance.populateEmissionsData()
-newInstance.populateTempData()
+#newInstance.populateEmissionsData()
+#newInstance.populateTempData()
 newInstance.summonData()
 newInstance.showMap()
