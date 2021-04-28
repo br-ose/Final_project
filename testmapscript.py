@@ -45,6 +45,10 @@ class doneWithTheEarth:
             self.global_cur, self.global_conn = setUpDatabase(global_db_name) # just connect to it!
             print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
+    def __str__(self):
+
+        return "This is an object of our class we created, man! You can't just print it!\n\nTake a look at our documentation to learn what to do!"
+
     def getemissions(self,country):
 
     ## Get average recent emissions
@@ -122,6 +126,25 @@ class doneWithTheEarth:
                 print("Invalid input, try again.")
                 continue
 
+    def populateEmissionsData(self):
+
+        self.global_cur.execute("SELECT iso_a3 FROM Emissions_Data")
+        datalist = list(self.global_cur.fetchall())
+        for anycountry in self.worldgdf['iso_a3']:
+            if anycountry not in datalist:
+                self.global_cur.execute("INSERT INTO Emissions_Data (iso_a3, emissions) VALUES (?, ?)", (anycountry, self.getemissions(anycountry)))
+        self.global_cur.commit()
+
+    def populateTempData(self):
+
+        self.global_cur.execute("SELECT iso_a3 FROM Temperature_Data")
+        datalist = list(self.global_cur.fetchall())
+        for anycountry in self.worldgdf['iso_a3']:
+            if anycountry in datalist:
+                self.global_cur.execute("DELETE FROM Temperature_Data WHERE iso_a3 = ?", (anycountry,))
+            self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry), self.yeartuple[0], self.yeartuple[1]))
+        self.global_cur.commit()
+    
     def autocomplete(self):
 
         while len(self.userinputlist) < 25:
@@ -129,17 +152,17 @@ class doneWithTheEarth:
             if chosencountry not in self.userinputlist:
                 self.userinputlist += [chosencountry]
         
-        print(len(self.userinputlist))
+        # print(len(self.userinputlist))
 
-    def populateData(self):
+    def summonData(self):
 
         # for anyrow in ben's data table(s):
         #     index_num = list(worldgdf['iso_a3']).index(anyrow's country ### this should be anyrow[2]??? ### )
         #     (worldgdf.at[index_num, 'datacolumn1'], worldgdf.at[index_num, 'datacolumn2']) = (datavalue1, datavalue2)
 
-        randomvalslist = [random.random() + 1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
-        randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
-        self.worldgdf['randomvals'], self.worldgdf['randomvals2'] = randomvalslist, randomvalslist2
+        #randomvalslist = [random.random() + 1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
+        #randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
+        #self.worldgdf['randomvals'], self.worldgdf['randomvals2'] = randomvalslist, randomvalslist2
 
     def showMap(self):
 
@@ -156,9 +179,9 @@ class doneWithTheEarth:
         plt.ylabel('Latitude')
         plt.show()
 
-newInstance = doneWithTheEarth()
+#newInstance = doneWithTheEarth()
 
-newInstance.getUserInput()
-newInstance.autocomplete()
-newInstance.populateData()
-newInstance.showMap()
+#newInstance.getUserInput()
+#newInstance.autocomplete()
+#newInstance.populateData()
+#newInstance.showMap()
