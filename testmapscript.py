@@ -46,7 +46,7 @@ class doneWithTheEarth:
             print("\nDatabase already created, using existing database!\n") # statement for user to see they accessed the existing database
 
     def getemissions(self,country):
-    # Get average carbon monoxide emissions across a given country for the past period
+
     ## Get average recent emissions
     # use fixed full date
     # returns average
@@ -86,19 +86,6 @@ class doneWithTheEarth:
             return 0
         return higherdata - lowerdata
 
-    def addtemp(self,tempdata,global_cur,global_conn):
-        ## adds the temp data to the database in chunks
-        #Shared key is country
-        pass
-
-    def addemissions(self,emdata):
-        # adds emissions data in chunks
-        #Shared key is country
-        pass
-
-    def calculateavg(self):
-        # gets the average emissions of a country and compares 
-        pass
 
     def getUserInput(self):
 
