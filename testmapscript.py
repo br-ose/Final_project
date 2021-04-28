@@ -90,7 +90,6 @@ class doneWithTheEarth:
             return 0
         return higherdata - lowerdata
 
-
     def getUserInput(self):
 
         loopbool = True
@@ -190,9 +189,30 @@ class doneWithTheEarth:
         #randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
         #self.worldgdf['randomvals'], self.worldgdf['randomvals2'] = randomvalslist, randomvalslist2
 
-        #for anyentry in self.userinputlist:
-        #    self.global_cur.execute("SELECT ")
-        
+        #self.global_cur.execute("SELECT iso_a3, emissions FROM Emissions_Data")
+        #emissionsdatalist = list(self.global_cur.fetchall())
+
+        #countrycodes = 
+        #self.userinputlist = [(anyentry, list(self.worldgdf['iso_a3']).index(anyentry)) for anyentry in self.userinputlist]
+        self.userinputlist = sorted(self.userinputlist, key = lambda a: list(self.worldgdf['iso_a3']).index(a))
+        emissiondatalist = []
+
+        for count, anycountry in enumerate(list(self.worldgdf['iso_a3'])):
+            if anycountry in self.userinputlist:
+                self.global_cur.execute("SELECT iso_a3, emissions FROM Emissions_Data WHERE iso_a3 = ?", (anycountry,))
+                emissiondatapoint = self.global_cur.fetchall()
+                emissiondatalist += [emissiondatapoint]
+            else:
+                emissiondatalist += [None]
+
+        self.worldgdf['emissions'] = emissiondatalist
+
+        # pull up emissions data
+        # pull up contry data from self.worldgdf['iso_a3'] or maybe self.worldgdf['id']???
+        # templist = []
+        # for anycountry in self.userinputdata:
+        #     templist 
+
         pass
 
     def showMap(self):
@@ -212,9 +232,10 @@ class doneWithTheEarth:
 
 newInstance = doneWithTheEarth()
 
-#newInstance.getUserInput()
+newInstance.getUserInput()
 #newInstance.autocomplete()
 #newInstance.populateData()
 #newInstance.showMap()
 #newInstance.populateEmissionsData()
 #newInstance.populateTempData()
+newInstance.summonData()
