@@ -59,18 +59,26 @@ def setUpDatabase(db_name):
      cur = conn.cursor()    
      return cur, conn
 def createtempdatabase(cur,conn):
-    cur.execute("CREATE TABLE IF NOT EXISTS tempdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, tempchange REAL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS tempdata (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, tempchange REAL)")
     conn.commit()
 def createemissionsdatabase(cur,conn):
-    cur.execute("CREATE TABLE IF NOT EXISTS emissionsdata (id INTEGER PRIMARY KEY AUTOINCREMENT, country TEXT, emissionsavg REAL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Emissions_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, emissions REAL)")
     conn.commit()
 
 def addtemps(cur,conn,tempresults,country):
     cur.execute("INSERT OR REPLACE INTO tempdata(country,tempchange) VALUES(?,?)",(country,tempresults))
 
 def addemissions(cur,conn,emissionsresults,country):
-    cur.execute("INSERT OR REPLACE INTO emissionsdata(country,tempchange) VALUES(?,?)",(country,emissionsresults))
+    cur.execute("INSERT OR REPLACE INTO Emissions_Data(iso_a3,emissions) VALUES(?,?)",(country,emissionsresults))
 
+def findtopstats(cur,conn):
+    cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MAX(emissions) FROM Emissions_Data)")
+    cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MIN(emissions) FROM Emissions_Data)")
+    rows = cur.fetchall()
+    print(rows)
+    #cur.execute("SELECT Emissions_Data.emissions")
+    
+    
 
     
 print(gettemp((24,-76),1920,2012))
@@ -78,3 +86,6 @@ cur,conn = setUpDatabase("testbase.db")
 createtempdatabase(cur,conn)
 createemissionsdatabase(cur,conn)
 addemissions(cur,conn,"USA",20.0)
+addemissions(cur,conn,"RUS",10.0)
+addemissions(cur,conn,"DNK",30.0)
+findtopstats(cur,conn)
