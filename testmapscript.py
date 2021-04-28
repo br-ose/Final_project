@@ -130,12 +130,13 @@ class doneWithTheEarth:
         self.global_cur.execute("SELECT iso_a3 FROM Emissions_Data")
         datalist = [anyentry[0] for anyentry in list(self.global_cur.fetchall())]
         accum = 0
+        testvar = len(self.worldgdf['iso_a3'])
         for anycountry in self.worldgdf['iso_a3']:
-            if anycountry not in datalist and accum < 10:
+            if anycountry in self.userinputlist and anycountry not in datalist and accum < 5 and anycountry != '-99':
                 self.global_cur.execute("INSERT INTO Emissions_Data (iso_a3, emissions) VALUES (?, ?)", (anycountry, self.getemissions(anycountry)))
                 print("Added {}'s emissions to the database!".format(anycountry))
                 accum += 1
-            elif accum >= 10:
+            elif accum >= 5 and anycountry != '-99':
                 break
         self.global_conn.commit()
 
@@ -145,6 +146,7 @@ class doneWithTheEarth:
         fulllist = list(self.global_cur.fetchall())
         namelist = [anyentry[0] for anyentry in fulllist]
         accum = 0
+        testvar = len(self.worldgdf['iso_a3'])
         for anycountry in self.worldgdf['iso_a3']:
             # for anycountry in the world,
             # if anycountry is already stored in the database but the year is wrong,
@@ -153,17 +155,15 @@ class doneWithTheEarth:
             # leave it alone
             # if anycountry is not already stored in the database,
             # add it with the right year
-            if accum >= 10:
+            if accum >= 5:
                 break
-            if anycountry in namelist: # and the year is different than the one on file;
+            if anycountry in self.userinputlist and anycountry in namelist and anycountry != '-99': # and the year is different than the one on file;
                 fulllistentry = fulllist[namelist.index(anycountry)]
-                if (fulllistentry[1], fulllistentry[2]) != self.yeartuple and accum < 10:
+                if (fulllistentry[1], fulllistentry[2]) != self.yeartuple and accum < 5:
                     self.global_cur.execute("DELETE FROM Temperature_Data WHERE iso_a3 = ?", (anycountry,)) # delete and replace 
                     self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry, self.yeartuple[0], self.yeartuple[1]), self.yeartuple[0], self.yeartuple[1]))
                     accum += 1
-                elif (fulllistentry[1], fulllistentry[2]) == self.yeartuple:
-                    pass
-            elif anycountry not in namelist and accum < 10:
+            elif anycountry in self.userinputlist and anycountry not in namelist and accum < 5 and anycountry != '-99':
                 self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry, self.yeartuple[0], self.yeartuple[1]), self.yeartuple[0], self.yeartuple[1]))
                 accum += 1
 
@@ -189,7 +189,7 @@ class doneWithTheEarth:
 
         while len(self.userinputlist) < 25:
             chosencountry = random.choice(self.worldgdf['iso_a3'])
-            if chosencountry not in self.userinputlist:
+            if chosencountry not in self.userinputlist and chosencountry != '-99':
                 self.userinputlist += [chosencountry]
         
         # print(len(self.userinputlist))
@@ -250,17 +250,18 @@ class doneWithTheEarth:
         plt.ylabel('Latitude')
         plt.figure(1)
         self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['tempchange'], cmap = 'viridis', legend = True)
-        plt.title('Temperature change from {} to {}'.format(str(self.yeartuple[0]), str(self.yeartuple[1])))
+        plt.title('Temperature change (˚C) from {} to {} '.format(str(self.yeartuple[0]), str(self.yeartuple[1])))
         plt.xlabel('Longitude')
         plt.ylabel('Latitude')
         plt.show()
 
-newInstance = doneWithTheEarth()
+#newInstance = doneWithTheEarth()
 
-#newInstance.calculatedata()
-newInstance.getUserInput()
+#newInstance.getUserInput()
 #newInstance.autocomplete()
-#newInstance.populateEmissionsData()
-#newInstance.populateTempData()
-newInstance.summonData()
-newInstance.showMap()
+#for num in range(5):
+#    newInstance.populateEmissionsData()
+#    newInstance.populateTempData()
+#newInstance.calculatedata()
+#newInstance.summonData()
+#newInstance.showMap()

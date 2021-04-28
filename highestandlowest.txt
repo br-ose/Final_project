@@ -1,0 +1,4 @@
+The ISO3 code of the country with the highest recent carbon monoxide emissions was COG.
+It emitted 0.05227262288183475 mol/m^2 of carbon monoxide on average over the past 3 years, and experienced a 0.19657100000000227 degree celcius change in average temperature over the past 3 years.
+The ISO3 code of the country with the lowest recent carbon monoxide emissions was ATA.
+It emitted 0.013255606740543345 mol/m^2 of carbon monoxide on average over the past 3 years, and experienced a 0.0 degree celcius change in average temperature over the past 3 years.
