@@ -130,19 +130,28 @@ class doneWithTheEarth:
 
         self.global_cur.execute("SELECT iso_a3 FROM Emissions_Data")
         datalist = list(self.global_cur.fetchall())
+        accum = 0
         for anycountry in self.worldgdf['iso_a3']:
-            if anycountry not in datalist:
+            if anycountry not in datalist and accum < 25:
                 self.global_cur.execute("INSERT INTO Emissions_Data (iso_a3, emissions) VALUES (?, ?)", (anycountry, self.getemissions(anycountry)))
+                accum += 1
+            elif accum >= 25:
+                break
         self.global_cur.commit()
 
     def populateTempData(self):
 
         self.global_cur.execute("SELECT iso_a3 FROM Temperature_Data")
         datalist = list(self.global_cur.fetchall())
+        accum = 0
         for anycountry in self.worldgdf['iso_a3']:
             if anycountry in datalist:
                 self.global_cur.execute("DELETE FROM Temperature_Data WHERE iso_a3 = ?", (anycountry,))
-            self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry), self.yeartuple[0], self.yeartuple[1]))
+            if accum < 25:
+                self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry), self.yeartuple[0], self.yeartuple[1]))
+                accum += 1
+            elif accum >= 25:
+                break
         self.global_cur.commit()
     
     def autocomplete(self):
