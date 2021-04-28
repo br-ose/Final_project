@@ -13,7 +13,7 @@ class doneWithTheEarth:
     def __init__(self):
 
         self.userinputlist = []
-        self.yeartuple = (1901, 2012)
+        self.yeartuple = (1901, 2000)
 
         datapath = gpd.datasets.get_path('naturalearth_lowres') # sets map we're using to a default map of the whole world
         self.worldgdf = gpd.read_file(datapath)
@@ -129,30 +129,31 @@ class doneWithTheEarth:
     def populateEmissionsData(self):
 
         self.global_cur.execute("SELECT iso_a3 FROM Emissions_Data")
-        datalist = list(self.global_cur.fetchall())
+        datalist = [anyentry[0] for anyentry in list(self.global_cur.fetchall())]
         accum = 0
         for anycountry in self.worldgdf['iso_a3']:
             if anycountry not in datalist and accum < 25:
                 self.global_cur.execute("INSERT INTO Emissions_Data (iso_a3, emissions) VALUES (?, ?)", (anycountry, self.getemissions(anycountry)))
+                print("Added {}'s emissions to the database!".format(anycountry))
                 accum += 1
             elif accum >= 25:
                 break
-        self.global_cur.commit()
+        self.global_conn.commit()
 
     def populateTempData(self):
 
         self.global_cur.execute("SELECT iso_a3 FROM Temperature_Data")
-        datalist = list(self.global_cur.fetchall())
+        datalist = [anyentry[0] for anyentry in list(self.global_cur.fetchall())]
         accum = 0
         for anycountry in self.worldgdf['iso_a3']:
             if anycountry in datalist:
                 self.global_cur.execute("DELETE FROM Temperature_Data WHERE iso_a3 = ?", (anycountry,))
-            if accum < 25:
-                self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry), self.yeartuple[0], self.yeartuple[1]))
+            if accum < 5:
+                self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry, self.yeartuple[0], self.yeartuple[1]), self.yeartuple[0], self.yeartuple[1]))
                 accum += 1
-            elif accum >= 25:
+            elif accum >= 5:
                 break
-        self.global_cur.commit()
+        self.global_conn.commit()
     
     def autocomplete(self):
 
@@ -173,8 +174,8 @@ class doneWithTheEarth:
         #randomvalslist2 = [1 if anyentry in self.userinputlist else None for anyentry in self.worldgdf['iso_a3']]
         #self.worldgdf['randomvals'], self.worldgdf['randomvals2'] = randomvalslist, randomvalslist2
 
-        for anyentry in self.userinputlist:
-            self.global_cur.execute("SELECT ")
+        #for anyentry in self.userinputlist:
+        #    self.global_cur.execute("SELECT ")
         
         pass
 
@@ -200,3 +201,4 @@ newInstance = doneWithTheEarth()
 #newInstance.populateData()
 #newInstance.showMap()
 #newInstance.populateEmissionsData()
+#newInstance.populateTempData()
