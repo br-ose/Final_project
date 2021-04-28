@@ -59,7 +59,7 @@ class doneWithTheEarth:
         results = results.json()
         totalresult = 0
         for result in results:
-            totalresult += result
+            totalresult += result["average"] 
         totalresult = totalresult/len(results)
         return totalresult
 

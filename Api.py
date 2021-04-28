@@ -65,17 +65,16 @@ def createemissionsdatabase(cur,conn):
     cur.execute("CREATE TABLE IF NOT EXISTS Emissions_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, emissions REAL)")
     conn.commit()
 
-def addtemps(cur,conn,tempresults,country):
-    cur.execute("INSERT OR REPLACE INTO tempdata(country,tempchange) VALUES(?,?)",(country,tempresults))
-
-def addemissions(cur,conn,emissionsresults,country):
-    cur.execute("INSERT OR REPLACE INTO Emissions_Data(iso_a3,emissions) VALUES(?,?)",(country,emissionsresults))
+def addemissions(cur,conn,country,emissionsresults):
+    cur.execute("INSERT INTO Emissions_Data(iso_a3,emissions) VALUES(?,?)",(country,emissionsresults))
 
 def findtopstats(cur,conn):
     cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MAX(emissions) FROM Emissions_Data)")
+    highest = cur.fetchall()
     cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MIN(emissions) FROM Emissions_Data)")
-    rows = cur.fetchall()
-    print(rows)
+    lowest = cur.fetchall()
+    print(highest)
+    print(lowest)
     #cur.execute("SELECT Emissions_Data.emissions")
     
     
