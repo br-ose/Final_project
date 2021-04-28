@@ -13,7 +13,7 @@ class doneWithTheEarth:
     def __init__(self):
 
         self.userinputlist = []
-        self.yeartuple = (1901, 2000)
+        self.yeartuple = (1901, 2012)
 
         datapath = gpd.datasets.get_path('naturalearth_lowres') # sets map we're using to a default map of the whole world
         self.worldgdf = gpd.read_file(datapath)
@@ -131,27 +131,42 @@ class doneWithTheEarth:
         datalist = [anyentry[0] for anyentry in list(self.global_cur.fetchall())]
         accum = 0
         for anycountry in self.worldgdf['iso_a3']:
-            if anycountry not in datalist and accum < 25:
+            if anycountry not in datalist and accum < 10:
                 self.global_cur.execute("INSERT INTO Emissions_Data (iso_a3, emissions) VALUES (?, ?)", (anycountry, self.getemissions(anycountry)))
                 print("Added {}'s emissions to the database!".format(anycountry))
                 accum += 1
-            elif accum >= 25:
+            elif accum >= 10:
                 break
         self.global_conn.commit()
 
     def populateTempData(self):
 
-        self.global_cur.execute("SELECT iso_a3 FROM Temperature_Data")
-        datalist = [anyentry[0] for anyentry in list(self.global_cur.fetchall())]
+        self.global_cur.execute("SELECT iso_a3, startyear, endyear FROM Temperature_Data")
+        fulllist = list(self.global_cur.fetchall())
+        namelist = [anyentry[0] for anyentry in fulllist]
         accum = 0
         for anycountry in self.worldgdf['iso_a3']:
-            if anycountry in datalist:
-                self.global_cur.execute("DELETE FROM Temperature_Data WHERE iso_a3 = ?", (anycountry,))
-            if accum < 5:
+            # for anycountry in the world,
+            # if anycountry is already stored in the database but the year is wrong,
+            # delete the current entry and make a new one
+            # if anycountry is already stored in the database but the year is right,
+            # leave it alone
+            # if anycountry is not already stored in the database,
+            # add it with the right year
+            if accum >= 10:
+                break
+            if anycountry in namelist: # and the year is different than the one on file;
+                fulllistentry = fulllist[namelist.index(anycountry)]
+                if (fulllistentry[1], fulllistentry[2]) != self.yeartuple and accum < 10:
+                    self.global_cur.execute("DELETE FROM Temperature_Data WHERE iso_a3 = ?", (anycountry,)) # delete and replace 
+                    self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry, self.yeartuple[0], self.yeartuple[1]), self.yeartuple[0], self.yeartuple[1]))
+                    accum += 1
+                elif (fulllistentry[1], fulllistentry[2]) == self.yeartuple:
+                    pass
+            elif anycountry not in namelist and accum < 10:
                 self.global_cur.execute("INSERT INTO Temperature_Data (iso_a3, tempchange, startyear, endyear) VALUES (?, ?, ?, ?)", (anycountry, self.gettemp(anycountry, self.yeartuple[0], self.yeartuple[1]), self.yeartuple[0], self.yeartuple[1]))
                 accum += 1
-            elif accum >= 5:
-                break
+
         self.global_conn.commit()
     
     def autocomplete(self):
@@ -178,18 +193,30 @@ class doneWithTheEarth:
 
         #countrycodes = 
         #self.userinputlist = [(anyentry, list(self.worldgdf['iso_a3']).index(anyentry)) for anyentry in self.userinputlist]
+        
         self.userinputlist = sorted(self.userinputlist, key = lambda a: list(self.worldgdf['iso_a3']).index(a))
+        
         emissiondatalist = []
-
-        for count, anycountry in enumerate(list(self.worldgdf['iso_a3'])):
+        for anycountry in list(self.worldgdf['iso_a3']):
             if anycountry in self.userinputlist:
-                self.global_cur.execute("SELECT iso_a3, emissions FROM Emissions_Data WHERE iso_a3 = ?", (anycountry,))
-                emissiondatapoint = self.global_cur.fetchall()
-                emissiondatalist += [emissiondatapoint]
+                self.global_cur.execute("SELECT iso_a3, emissions FROM Emissions_Data")
+                emissiondatapoints = self.global_cur.fetchall()
+                emissiondatalist += [anyentry[1] for anyentry in emissiondatapoints if anyentry[0] == anycountry]
             else:
                 emissiondatalist += [None]
 
         self.worldgdf['emissions'] = emissiondatalist
+
+        tempdatalist = []
+        for anycountry in list(self.worldgdf['iso_a3']):
+            if anycountry in self.userinputlist:
+                self.global_cur.execute("SELECT iso_a3, tempchange FROM Temperature_Data")
+                tempdatapoints = self.global_cur.fetchall()
+                tempdatalist += [anyentry[1] for anyentry in tempdatapoints if anyentry[0] == anycountry]
+            else:
+                tempdatalist += [None]
+
+        self.worldgdf['tempchange'] = tempdatalist
 
         # pull up emissions data
         # pull up contry data from self.worldgdf['iso_a3'] or maybe self.worldgdf['id']???
@@ -197,18 +224,16 @@ class doneWithTheEarth:
         # for anycountry in self.userinputdata:
         #     templist 
 
-        pass
-
     def showMap(self):
 
         self.global_conn.close()
 
-        self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['randomvals'], cmap = 'viridis', legend = True)
+        self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['emissions'], cmap = 'viridis', legend = True)
         plt.title('Some cool climate change data (mol/m^3)') # gives our map a title
         plt.xlabel('Longitude') # name the x and y axes,
         plt.ylabel('Latitude')
         plt.figure(1)
-        self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['randomvals2'], cmap = 'viridis', legend = True)
+        self.worldgdf.plot(edgecolor = 'black', column = self.worldgdf['tempchange'], cmap = 'viridis', legend = True)
         plt.title('Temperature change from {} to {}'.format(str(self.yeartuple[0]), str(self.yeartuple[1])))
         plt.xlabel('Longitude')
         plt.ylabel('Latitude')
@@ -216,10 +241,10 @@ class doneWithTheEarth:
 
 newInstance = doneWithTheEarth()
 
-newInstance.getUserInput()
+#newInstance.getUserInput()
 #newInstance.autocomplete()
 #newInstance.populateData()
+newInstance.populateEmissionsData()
+newInstance.populateTempData()
+#newInstance.summonData()
 #newInstance.showMap()
-#newInstance.populateEmissionsData()
-#newInstance.populateTempData()
-newInstance.summonData()
