@@ -75,7 +75,7 @@ def findtopstats(cur,conn):
     lowest = cur.fetchall()
     print(highest)
     print(lowest)
-    #cur.execute("SELECT Emissions_Data.emissions")
+    cur.execute("SELECT Emissions_Data.emissions ")
     
     
 

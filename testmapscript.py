@@ -55,7 +55,7 @@ class doneWithTheEarth:
     # use fixed full date
     # returns average
         url = "https://api.v2.emissions-api.org/api/v2/carbonmonoxide/average.json?country={}&begin=2018-12-31&end=2021-4-25".format(country)
-        results =  requests.get(url)
+        results =  requests.get(url,timeout=5)
         results = results.json()
         totalresult = 0
         for result in results:
@@ -70,7 +70,7 @@ class doneWithTheEarth:
         ### Returns the difference
         url = "http://climatedataapi.worldbank.org/climateweb/rest/v1/country/cru/tas/year/{}".format(country.strip())
         print(url) 
-        results =  requests.get(url)
+        results =  requests.get(url,timeout=5)
         results = results.json()
         ## This is just difference in two values
         for result in results:
