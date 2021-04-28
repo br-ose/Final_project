@@ -59,24 +59,29 @@ def setUpDatabase(db_name):
      cur = conn.cursor()    
      return cur, conn
 def createtempdatabase(cur,conn):
-    cur.execute("CREATE TABLE IF NOT EXISTS tempdata (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, tempchange REAL)")
+    cur.execute("CREATE TABLE IF NOT EXISTS Temperature_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, tempchange REAL)")
     conn.commit()
 def createemissionsdatabase(cur,conn):
     cur.execute("CREATE TABLE IF NOT EXISTS Emissions_Data (id INTEGER PRIMARY KEY AUTOINCREMENT, iso_a3 TEXT, emissions REAL)")
     conn.commit()
 
+def addtemp(cur,conn,country,emissionsresults):
+    cur.execute("INSERT INTO Temperature_Data(iso_a3,tempchange) VALUES(?,?)",(country,emissionsresults))
 def addemissions(cur,conn,country,emissionsresults):
     cur.execute("INSERT INTO Emissions_Data(iso_a3,emissions) VALUES(?,?)",(country,emissionsresults))
 
 def findtopstats(cur,conn):
     cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MAX(emissions) FROM Emissions_Data)")
-    highest = cur.fetchall()
+    highest = cur.fetchone()
     cur.execute("SELECT iso_a3,emissions FROM Emissions_Data where emissions = (SELECT MIN(emissions) FROM Emissions_Data)")
     lowest = cur.fetchall()
     print(highest)
     print(lowest)
-    cur.execute("SELECT Emissions_Data.emissions ")
-    
+    cur.execute("SELECT Emissions_Data.iso_a3,Emissions_Data.emissions,Temperature_Data.tempchange FROM Emissions_Data JOIN Temperature_Data ON Emissions_Data.iso_a3 = Temperature_Data.iso_a3 WHERE Emissions_Data.emissions = ?;",(highest[1],))
+    highestval = cur.fetchone()
+    print(highestval)
+    f = open("highestandlowest.txt","w")
+    f.write("The country with the highest recent carbon monoxide emissions was {}.\nIt emitted {} mol/m^2 of carbon monoxide on average over the past 3 years, and experienced a {} degree celcius change in average temperature over the past {} years.\n".format(highestval[0],highestval[1],highestval[2],69))
     
 
     
@@ -84,6 +89,8 @@ print(gettemp((24,-76),1920,2012))
 cur,conn = setUpDatabase("testbase.db")
 createtempdatabase(cur,conn)
 createemissionsdatabase(cur,conn)
+addtemp(cur,conn,"USA",.02)
+addtemp(cur,conn,"DNK",.02)
 addemissions(cur,conn,"USA",20.0)
 addemissions(cur,conn,"RUS",10.0)
 addemissions(cur,conn,"DNK",30.0)
